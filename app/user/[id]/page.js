@@ -6,13 +6,28 @@ import Link from "next/link"
 import { ProtectedRoute } from "@/components/protected-route"
 import { Navbar } from "@/components/navbar"
 import { PublicationCard } from "@/components/publication-card"
-import { getUserById, getUserPublications, getImageUrl } from "@/lib/pocketbase"
-import { Mail, Globe, Building, MapPin, BookOpen, Eye, Users, Award, Loader2 } from "lucide-react"
+import { ExpandableText } from "@/components/profile/expandable-text"
+import {
+  getUserById,
+  getUserPublications,
+  getEducation,
+  getExperiences,
+  getCertifications,
+  getProjects,
+  getSkills,
+  getImageUrl,
+} from "@/lib/pocketbase"
+import { Mail, Globe, Building, MapPin, BookOpen, Eye, Users, Award, Loader2, Briefcase, GraduationCap, Award as AwardIcon, Code2 } from "lucide-react"
 
 export default function UserProfilePage() {
   const { id } = useParams()
   const [user, setUser] = useState(null)
   const [publications, setPublications] = useState([])
+  const [education, setEducation] = useState([])
+  const [experiences, setExperiences] = useState([])
+  const [certifications, setCertifications] = useState([])
+  const [projects, setProjects] = useState([])
+  const [skills, setSkills] = useState([])
   const [loading, setLoading] = useState(true)
   const [publicationsLoading, setPublicationsLoading] = useState(false)
   const [error, setError] = useState("")
@@ -20,7 +35,7 @@ export default function UserProfilePage() {
   useEffect(() => {
     if (id) {
       loadUserProfile()
-      loadUserPublications()
+      loadAllData()
     }
   }, [id])
 
@@ -36,12 +51,26 @@ export default function UserProfilePage() {
     setLoading(false)
   }
 
-  const loadUserPublications = async () => {
+  const loadAllData = async () => {
     setPublicationsLoading(true)
-    const result = await getUserPublications(id)
+    try {
+      const [pubResult, eduResult, expResult, certResult, projResult, skillResult] = await Promise.all([
+        getUserPublications(id),
+        getEducation(id),
+        getExperiences(id),
+        getCertifications(id),
+        getProjects(id),
+        getSkills(id),
+      ])
 
-    if (result.success) {
-      setPublications(result.data.items)
+      if (pubResult.success) setPublications(pubResult.data.items)
+      if (eduResult.success) setEducation(eduResult.data.items || [])
+      if (expResult.success) setExperiences(expResult.data.items || [])
+      if (certResult.success) setCertifications(certResult.data.items || [])
+      if (projResult.success) setProjects(projResult.data.items || [])
+      if (skillResult.success) setSkills(skillResult.data.items || [])
+    } catch (err) {
+      console.error("Error loading data:", err)
     }
     setPublicationsLoading(false)
   }
@@ -98,29 +127,44 @@ export default function UserProfilePage() {
 
         <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Profile Header */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mb-8">
-            <div className="p-6">
-              <div className="flex items-start gap-6 mb-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mb-8 overflow-hidden">
+            {/* Banner Image */}
+            <div className="relative w-full h-48 bg-gradient-to-r from-cyan-400 to-blue-500 overflow-hidden">
+              {user.profile_banner ? (
+                <img
+                  src={getImageUrl(user, user.profile_banner) || "/placeholder.svg"}
+                  alt="Profile Banner"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500"></div>
+              )}
+            </div>
+
+            {/* Profile Content */}
+            <div className="px-6 pb-6">
+              <div className="flex flex-col md:flex-row md:items-end md:gap-6 -mt-16 mb-6 relative z-10">
                 {/* Avatar */}
                 <div className="flex-shrink-0">
                   {user.avatar ? (
                     <img
                       src={getImageUrl(user, user.avatar) || "/placeholder.svg"}
                       alt={user.name}
-                      className="w-24 h-24 rounded-full object-cover"
+                      className="w-48 h-48 rounded-full object-cover border-4 border-white dark:border-gray-800 shadow-lg"
                     />
                   ) : (
-                    <div className="w-24 h-24 bg-cyan-500 rounded-full flex items-center justify-center">
-                      <span className="text-2xl font-bold text-white">
+                    <div className="w-32 h-32 bg-cyan-500 rounded-full flex items-center justify-center border-4 border-white dark:border-gray-800 shadow-lg">
+                      <span className="text-4xl font-bold text-white">
                         {(user.name || user.email || "U").charAt(0).toUpperCase()}
                       </span>
                     </div>
                   )}
                 </div>
 
-                {/* Basic Info */}
+                {/* User Info */}
+              </div>
                 <div className="flex-1">
-                  <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{user.name || user.email}</h1>
+                  <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-1">{user.name || user.email}</h1>
 
                   {user.position && user.institution && (
                     <p className="text-lg text-gray-600 dark:text-gray-400 mb-3">
@@ -128,26 +172,19 @@ export default function UserProfilePage() {
                     </p>
                   )}
 
-                  {user.bio && <p className="text-gray-600 dark:text-gray-400 mb-4">{user.bio}</p>}
+                  {user.location && (
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 flex items-center gap-1">
+                      <MapPin size={16} />
+                      {user.location}
+                    </p>
+                  )}
 
-                  {/* Contact Info */}
+                  {/* Contact Info Row */}
                   <div className="flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-400">
                     <span className="flex items-center gap-1">
                       <Mail size={14} />
                       {user.email}
                     </span>
-                    {user.institution && (
-                      <span className="flex items-center gap-1">
-                        <Building size={14} />
-                        {user.institution}
-                      </span>
-                    )}
-                    {user.department && (
-                      <span className="flex items-center gap-1">
-                        <MapPin size={14} />
-                        {user.department}
-                      </span>
-                    )}
                     {user.website && (
                       <a
                         href={user.website}
@@ -161,19 +198,47 @@ export default function UserProfilePage() {
                     )}
                   </div>
 
-                  {/* Researcher Type */}
-                  {user.researcher_type && (
-                    <div className="mt-4">
+                  {/* Researcher Badge */}
+                  {user.is_scientific && (
+                    <div className="mt-3">
                       <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-300">
-                        {user.researcher_type.charAt(0).toUpperCase() + user.researcher_type.slice(1)} Researcher
+                        ✓ Scientific Researcher
                       </span>
                     </div>
                   )}
                 </div>
+
+              {/* Bio Section */}
+              {user.bio && (
+                <div className="mt-6 pb-6 border-b border-gray-200 dark:border-gray-700">
+                  <ExpandableText text={user.bio} maxLength={250} />
+                </div>
+              )}
+
+              {/* Professional Details Grid */}
+              <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-6">
+                {user.company && (
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide font-semibold mb-1">Company</p>
+                    <p className="text-gray-900 dark:text-white font-medium">{user.company}</p>
+                  </div>
+                )}
+                {user.department && (
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide font-semibold mb-1">Department</p>
+                    <p className="text-gray-900 dark:text-white font-medium">{user.department}</p>
+                  </div>
+                )}
+                {user.institution && (
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide font-semibold mb-1">Institution</p>
+                    <p className="text-gray-900 dark:text-white font-medium">{user.institution}</p>
+                  </div>
+                )}
               </div>
 
-              {/* Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+              {/* Stats Row */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-6 mt-6 border-t border-gray-200 dark:border-gray-700">
                 <div className="text-center">
                   <div className="flex items-center justify-center w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg mx-auto mb-2">
                     <BookOpen className="w-6 h-6 text-blue-600 dark:text-blue-400" />
@@ -236,6 +301,139 @@ export default function UserProfilePage() {
               )}
             </div>
           </div>
+
+          {/* Experience Section */}
+          {experiences.length > 0 && (
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mt-8">
+              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  <Briefcase size={24} />
+                  Experience
+                </h2>
+              </div>
+
+              <div className="p-6 space-y-6">
+                {experiences.map((exp) => (
+                  <div key={exp.id} className="pb-6 border-b border-gray-200 dark:border-gray-700 last:border-b-0 last:pb-0">
+                    <h3 className="font-semibold text-gray-900 dark:text-white">{exp.title}</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{exp.company}</p>
+                    {exp.description && (
+                      <div className="mt-2">
+                        <ExpandableText text={exp.description} maxLength={150} />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Education Section */}
+          {education.length > 0 && (
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mt-8">
+              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  <GraduationCap size={24} />
+                  Education
+                </h2>
+              </div>
+
+              <div className="p-6 space-y-6">
+                {education.map((edu) => (
+                  <div key={edu.id} className="pb-6 border-b border-gray-200 dark:border-gray-700 last:border-b-0 last:pb-0">
+                    <h3 className="font-semibold text-gray-900 dark:text-white">{edu.school}</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {edu.degree}
+                      {edu.field_of_study && ` in ${edu.field_of_study}`}
+                    </p>
+                    {edu.description && (
+                      <div className="mt-2">
+                        <ExpandableText text={edu.description} maxLength={150} />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Certifications Section */}
+          {certifications.length > 0 && (
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mt-8">
+              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  <AwardIcon size={24} />
+                  Certifications
+                </h2>
+              </div>
+
+              <div className="p-6 space-y-4">
+                {certifications.map((cert) => (
+                  <div key={cert.id} className="pb-4 border-b border-gray-200 dark:border-gray-700 last:border-b-0 last:pb-0">
+                    <h3 className="font-semibold text-gray-900 dark:text-white">{cert.name}</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{cert.issuer}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Projects Section */}
+          {projects.length > 0 && (
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mt-8">
+              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  <Code2 size={24} />
+                  Projects
+                </h2>
+              </div>
+
+              <div className="p-6 space-y-6">
+                {projects.map((proj) => (
+                  <div key={proj.id} className="pb-6 border-b border-gray-200 dark:border-gray-700 last:border-b-0 last:pb-0">
+                    <h3 className="font-semibold text-gray-900 dark:text-white">{proj.title}</h3>
+                    {proj.description && (
+                      <div className="mt-2">
+                        <ExpandableText text={proj.description} maxLength={150} />
+                      </div>
+                    )}
+                    {proj.url && (
+                      <a
+                        href={proj.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-cyan-600 dark:text-cyan-400 hover:underline text-sm inline-block mt-2"
+                      >
+                        View Project →
+                      </a>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Skills Section */}
+          {skills.length > 0 && (
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mt-8">
+              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Skills</h2>
+              </div>
+
+              <div className="p-6">
+                <div className="flex flex-wrap gap-2">
+                  {skills.map((skill) => (
+                    <div
+                      key={skill.id}
+                      className="px-3 py-1 bg-cyan-100 dark:bg-cyan-900 text-cyan-800 dark:text-cyan-300 rounded-full text-sm font-medium"
+                    >
+                      {skill.name}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
         </main>
       </div>
     </ProtectedRoute>

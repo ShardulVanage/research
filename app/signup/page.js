@@ -7,7 +7,7 @@ import Image from "next/image"
 import { Eye, EyeOff, Mail, Lock, User, AlertCircle, CheckCircle } from "lucide-react"
 import { MeshGradientComponent } from "@/components/mesh-gradient"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { signupWithEmail } from "@/lib/pocketbase"
+import { signupWithEmail, authWithGoogle } from "@/lib/pocketbase"
 import { useAuth } from "@/contexts/auth-context"
 
 export default function SignupPage() {
@@ -83,20 +83,20 @@ export default function SignupPage() {
   }
 
   // Comment out the handleGoogleSignup function
-  // const handleGoogleSignup = async () => {
-  //   setLoading(true)
-  //   setError("")
+  const handleGoogleSignup = async () => {
+    setLoading(true)
+    setError("")
 
-  //   const result = await authWithGoogle()
+    const result = await authWithGoogle()
 
-  //   if (result.success) {
-  //     router.push("/")
-  //   } else {
-  //     setError(result.error)
-  //   }
+    if (result.success) {
+      router.push("/")
+    } else {
+      setError(result.error)
+    }
 
-  //   setLoading(false)
-  // }
+    setLoading(false)
+  }
 
   const nextStep = () => {
     // Validate required fields before going to next step
@@ -457,9 +457,8 @@ export default function SignupPage() {
 
             {step === 1 && (
               <>
-                {/* Comment out the divider and Google button */}
                 {/* Divider */}
-                {/* <div className="relative">
+                <div className="relative">
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-gray-300 dark:border-gray-600" />
                   </div>
@@ -468,10 +467,10 @@ export default function SignupPage() {
                       Or continue with
                     </span>
                   </div>
-                </div> */}
+                </div>
 
                 {/* Google Signup */}
-                {/* <button
+                <button
                   type="button"
                   onClick={handleGoogleSignup}
                   disabled={loading}
@@ -496,7 +495,7 @@ export default function SignupPage() {
                     />
                   </svg>
                   Continue with Google
-                </button> */}
+                </button>
               </>
             )}
 

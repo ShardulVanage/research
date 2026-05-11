@@ -7,7 +7,7 @@ import Image from "next/image"
 import { Eye, EyeOff, Mail, Lock, AlertCircle } from "lucide-react"
 import { MeshGradientComponent } from "@/components/mesh-gradient"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { loginWithEmail } from "@/lib/pocketbase"
+import { loginWithEmail, authWithGoogle } from "@/lib/pocketbase"
 import { useAuth } from "@/contexts/auth-context"
 
 export default function LoginPage() {
@@ -36,21 +36,20 @@ export default function LoginPage() {
     setError("")
   }
 
-  // Comment out the handleGoogleLogin function
-  // const handleGoogleLogin = async () => {
-  //   setLoading(true)
-  //   setError("")
+  const handleGoogleLogin = async () => {
+    setLoading(true)
+    setError("")
 
-  //   const result = await authWithGoogle()
+    const result = await authWithGoogle()
 
-  //   if (result.success) {
-  //     router.push("/")
-  //   } else {
-  //     setError(result.error)
-  //   }
+    if (result.success) {
+      router.push("/")
+    } else {
+      setError(result.error)
+    }
 
-  //   setLoading(false)
-  // }
+    setLoading(false)
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -159,6 +158,7 @@ export default function LoginPage() {
 
               {/* Divider */}
               {/* <div className="relative">
+              <div className="relative">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-gray-300 dark:border-gray-600" />
                 </div>
@@ -167,10 +167,10 @@ export default function LoginPage() {
                     Or continue with
                   </span>
                 </div>
-              </div> */}
+              </div>
 
               {/* Google Login */}
-              {/* <button
+              <button
                 type="button"
                 onClick={handleGoogleLogin}
                 disabled={loading}
@@ -195,9 +195,8 @@ export default function LoginPage() {
                   />
                 </svg>
                 Continue with Google
-              </button> */}
-            </form>
-
+              </button>
+</form>
             {/* Sign Up Link */}
             <div className="mt-8 text-center">
               <p className="text-gray-600 dark:text-gray-400">
