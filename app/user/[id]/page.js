@@ -17,7 +17,7 @@ import {
   getSkills,
   getImageUrl,
 } from "@/lib/pocketbase"
-import { Mail, Globe, Building, MapPin, BookOpen, Eye, Users, Award, Loader2, Briefcase, GraduationCap, Award as AwardIcon, Code2 } from "lucide-react"
+import { Mail, Globe, Building, MapPin, BookOpen, Eye, Users, Award, Loader2, Briefcase, GraduationCap, Award as AwardIcon, Code2, Github, Linkedin, Twitter, Instagram, Facebook, Youtube, ExternalLink } from "lucide-react"
 
 export default function UserProfilePage() {
   const { id } = useParams()
@@ -80,6 +80,36 @@ export default function UserProfilePage() {
     totalViews: publications.reduce((sum, pub) => sum + (pub.views_count || 0), 0),
     totalCitations: publications.reduce((sum, pub) => sum + (pub.citations_count || 0), 0),
     totalDownloads: publications.reduce((sum, pub) => sum + (pub.downloads_count || 0), 0),
+  }
+
+  const getSocialIcon = (platform) => {
+    const iconProps = { size: 14, className: "flex-shrink-0" }
+    switch (platform.toLowerCase()) {
+      case "github":
+        return <Github {...iconProps} />
+      case "linkedin":
+        return <Linkedin {...iconProps} />
+      case "twitter":
+        return <Twitter {...iconProps} />
+      case "instagram":
+        return <Instagram {...iconProps} />
+      case "facebook":
+        return <Facebook {...iconProps} />
+      case "youtube":
+        return <Youtube {...iconProps} />
+      case "portfolio":
+        return <ExternalLink {...iconProps} />
+      default:
+        return <Globe {...iconProps} />
+    }
+  }
+
+  const ensureAbsoluteUrl = (url) => {
+    if (!url) return ""
+    if (url.startsWith("http://") || url.startsWith("https://")) {
+      return url
+    }
+    return "https://" + url
   }
 
   if (loading) {
@@ -187,7 +217,7 @@ export default function UserProfilePage() {
                     </span>
                     {user.website && (
                       <a
-                        href={user.website}
+                        href={ensureAbsoluteUrl(user.website)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-1 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors"
@@ -196,16 +226,33 @@ export default function UserProfilePage() {
                         Website
                       </a>
                     )}
+                    {user.social_links && typeof user.social_links === 'object' && Object.entries(user.social_links).map(([platform, url]) => (
+                      <a
+                        key={platform}
+                        href={ensureAbsoluteUrl(url)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors capitalize"
+                      >
+                        {getSocialIcon(platform)}
+                        {platform}
+                      </a>
+                    ))}
                   </div>
 
-                  {/* Researcher Badge */}
-                  {user.is_scientific && (
-                    <div className="mt-3">
+                  {/* Badges */}
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {user.is_scientific && (
                       <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-300">
                         ✓ Scientific Researcher
                       </span>
-                    </div>
-                  )}
+                    )}
+                    {user.open_to_work && (
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
+                        💼 Open to Work
+                      </span>
+                    )}
+                  </div>
                 </div>
 
               {/* Bio Section */}
