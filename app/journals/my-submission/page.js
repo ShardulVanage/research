@@ -151,16 +151,19 @@ function MySubmissionContent() {
                         </p>
                       </div>
 
-                      {submission.file && (
-                        <div>
-                          <p className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">
-                            Status
-                          </p>
-                          <span className="inline-block px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm font-medium">
-                            File Uploaded
-                          </span>
-                        </div>
-                      )}
+                      <div>
+                        <p className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">
+                          Status
+                        </p>
+                        <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
+                          submission.status === 'pending' ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200' :
+                          submission.status === 'approve' ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' :
+                          submission.status === 'reject' ? 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200' :
+                          'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200'
+                        }`}>
+                          {submission.status ? submission.status.charAt(0).toUpperCase() + submission.status.slice(1) : 'Pending'}
+                        </span>
+                      </div>
                     </div>
 
                     {submission.file && (

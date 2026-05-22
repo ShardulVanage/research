@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Navbar } from "@/components/navbar"
 import { NoiseBackground } from "@/components/ui/noise-background"
 import Link  from "next/link"
+import { ProtectedRoute } from "@/components/protected-route"
 
 export default function JournalsPage() {
   const [journals, setJournals] = useState([])
@@ -87,6 +88,7 @@ export default function JournalsPage() {
   }
 
   return (
+    <ProtectedRoute>
     <div className="min-h-screen bg-white dark:bg-slate-950 pb-12 px-4 sm:px-6 lg:px-8">
          <Navbar />
       <div className="max-w-6xl mx-auto mt-12">
@@ -193,5 +195,6 @@ export default function JournalsPage() {
         )}
       </div>
     </div>
+      </ProtectedRoute>
   )
 }

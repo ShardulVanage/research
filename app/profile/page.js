@@ -33,10 +33,19 @@ export default function ProfilePage() {
   const [skills, setSkills] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
-  const [socialLinks, setSocialLinks] = useState(user?.social_links || {})
+  const [socialLinks, setSocialLinks] = useState({})
   const [newPlatform, setNewPlatform] = useState("")
   const [newUrl, setNewUrl] = useState("")
   const [savingSocialLinks, setSavingSocialLinks] = useState(false)
+
+  // Update socialLinks when user changes
+  useEffect(() => {
+    if (user?.social_links) {
+      setSocialLinks(user.social_links)
+    } else {
+      setSocialLinks({})
+    }
+  }, [user?.id])
 
   const platforms = ["github", "linkedin", "twitter", "instagram", "facebook", "youtube", "portfolio", "other"]
 
@@ -72,11 +81,16 @@ export default function ProfilePage() {
     }
   }, [user])
 
-  const stats = {
+  const stats = user ? {
     publications: publications.length,
     totalViews: publications.reduce((sum, pub) => sum + (pub.views_count || 0), 0),
     totalCitations: publications.reduce((sum, pub) => sum + (pub.citations_count || 0), 0),
     totalDownloads: publications.reduce((sum, pub) => sum + (pub.downloads_count || 0), 0),
+  } : {
+    publications: 0,
+    totalViews: 0,
+    totalCitations: 0,
+    totalDownloads: 0,
   }
 
   const getSocialIcon = (platform) => {
@@ -134,6 +148,10 @@ export default function ProfilePage() {
   }
 
   const handleToggleOpenToWork = async () => {
+    if (!user?.id) {
+      setError("User not authenticated")
+      return
+    }
     const result = await updateUserProfile(user.id, { open_to_work: !user.open_to_work })
     if (result.success) {
       loadAllData()
@@ -189,6 +207,21 @@ export default function ProfilePage() {
     }
   }
 
+  if (!user) {
+    return (
+      <ProtectedRoute>
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+          <Navbar />
+          <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="text-center py-12">
+              <p className="text-gray-600 dark:text-gray-400">Please log in to view your profile.</p>
+            </div>
+          </main>
+        </div>
+      </ProtectedRoute>
+    )
+  }
+
   if (loading) {
     return (
       <ProtectedRoute>
@@ -232,12 +265,12 @@ export default function ProfilePage() {
               <button
                 onClick={handleToggleOpenToWork}
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  user.open_to_work
+                  user?.open_to_work
                     ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 hover:bg-green-200"
                     : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200"
                 }`}
               >
-                {user.open_to_work ? "🎯 Open to Work" : "Not Available"}
+                {user?.open_to_work ? "🎯 Open to Work" : "Not Available"}
               </button>
             </div>
           </div>
@@ -324,19 +357,19 @@ export default function ProfilePage() {
           </div>
 
           {/* Experience Section */}
-          <ExperienceSection experiences={experiences} userId={user?.id} onUpdate={loadAllData} />
+          {user && <ExperienceSection experiences={experiences} userId={user.id} onUpdate={loadAllData} />}
 
           {/* Education Section */}
-          <EducationSection education={education} userId={user?.id} onUpdate={loadAllData} />
+          {user && <EducationSection education={education} userId={user.id} onUpdate={loadAllData} />}
 
           {/* Skills Section */}
-          <SkillsSection skills={skills} userId={user?.id} onUpdate={loadAllData} />
+          {user && <SkillsSection skills={skills} userId={user.id} onUpdate={loadAllData} />}
 
           {/* Certifications Section */}
-          <CertificationsSection certifications={certifications} userId={user?.id} onUpdate={loadAllData} />
+          {user && <CertificationsSection certifications={certifications} userId={user.id} onUpdate={loadAllData} />}
 
           {/* Projects Section */}
-          <ProjectsSection projects={projects} userId={user?.id} onUpdate={loadAllData} />
+          {user && <ProjectsSection projects={projects} userId={user.id} onUpdate={loadAllData} />}
 
           {/* Publications Section */}
           <PublicationsSection

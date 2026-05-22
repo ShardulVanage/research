@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useAuth } from "@/contexts/auth-context"
 import { Navbar } from "@/components/navbar"
+import { ProtectedRoute } from "@/components/protected-route"
 
 export default function JournalDetailPage() {
   const params = useParams()
@@ -28,6 +29,7 @@ export default function JournalDetailPage() {
     organization: "",
     file: null,
     message: "",
+    status: "pending",
   })
   const [submitMessage, setSubmitMessage] = useState("")
 
@@ -101,6 +103,40 @@ export default function JournalDetailPage() {
       const result = await submitPaperForm(submitData)
       
       if (result.success) {
+        // Send admin notification email
+        try {
+          const emailResponse = await fetch('/api/notify-admin', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              author: formData.author,
+              email: formData.email,
+              paper_title: formData.paper_title,
+              journal_name: formData.journal_name,
+              organization: formData.organization,
+              department: formData.department,
+              country: formData.country,
+              co_author: formData.co_author,
+              phone_number: formData.phone_number,
+              message: formData.message,
+              submissionId: result.data?.id || 'N/A',
+              fileField: result.data?.file || null
+            })
+          })
+          
+          if (!emailResponse.ok) {
+            const errorData = await emailResponse.json()
+            console.error('Email API error:', errorData)
+          } else {
+            const emailData = await emailResponse.json()
+            console.log('Admin email sent successfully:', emailData)
+          }
+        } catch (emailError) {
+          console.error('Failed to send admin notification:', emailError)
+        }
+
         setSubmitMessage("Thank you for your submission! Our team will follow up within 48 hours.")
         setFormData({
           user: user.id,
@@ -115,6 +151,7 @@ export default function JournalDetailPage() {
           organization: "",
           file: null,
           message: "",
+          status: "pending",
         })
         setTimeout(() => {
           setSubmitMessage("")
@@ -139,14 +176,17 @@ export default function JournalDetailPage() {
 
   if (!journal) {
     return (
+      <ProtectedRoute>
       <div className="min-h-screen bg-white dark:bg-slate-950 flex flex-col items-center justify-center">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Journal not found</h1>
         <Button onClick={() => router.push("/journals")}>Back to Journals</Button>
       </div>
+      </ProtectedRoute>
     )
   }
 
   return (
+    <ProtectedRoute>
     <div className="min-h-screen bg-white dark:bg-slate-950 pb-12 px-4 sm:px-6 lg:px-8">
         <Navbar></Navbar>
       <div className="max-w-7xl mx-auto pt-12">
@@ -424,5 +464,6 @@ export default function JournalDetailPage() {
       
       </div>
     </div>
+    </ProtectedRoute>
   )
 }
