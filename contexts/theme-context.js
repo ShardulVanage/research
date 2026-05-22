@@ -23,6 +23,10 @@ export const ThemeProvider = ({ children }) => {
 
   const applyTheme = (newTheme) => {
     const root = window.document.documentElement
+    
+    // Add transition class for smooth color change
+    root.style.transition = "background-color 0.5s ease, color 0.5s ease, border-color 0.5s ease"
+    
     root.classList.remove("light", "dark")
 
     if (newTheme === "system") {

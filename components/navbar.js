@@ -6,8 +6,9 @@ import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
 import { useTheme } from "@/contexts/theme-context"
-import { Search, Plus, User, LogOut, Sun, Moon, Monitor, Menu, X } from "lucide-react"
+import { Search, Plus, User, LogOut, Sun, Moon, Monitor, Menu, X, Book } from "lucide-react"
 import { getImageUrl } from "@/lib/pocketbase"
+import { NoiseBackground } from "@/components/ui/noise-background"
 
 export const Navbar = () => {
   const { user, signOut } = useAuth()
@@ -56,41 +57,54 @@ export const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-4">
-            {/* Theme Toggle */}
-            <div className="flex items-center gap-1 p-1 bg-gray-100 dark:bg-gray-800 rounded-lg">
-              {themeOptions.map(({ value, icon: Icon, label }) => (
-                <button
-                  key={value}
-                  onClick={() => setTheme(value)}
-                  className={`p-2 rounded-md transition-all duration-200 ${
-                    theme === value
-                      ? "bg-cyan-500 text-white shadow-lg"
-                      : "text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
-                  }`}
-                  title={label}
-                >
-                  <Icon size={16} />
-                </button>
-              ))}
+            {/* Theme Toggle & Create Button */}
+            <div className="flex items-end justify-center">
+              <NoiseBackground
+                containerClassName="w-fit p-2 rounded-full mx-auto"
+                gradientColors={[
+                  "rgb(59, 130, 246)",
+                  "rgb(37, 99, 235)",
+                  "rgb(14, 165, 233)",
+                ]}
+              >
+                <div className="flex items-center gap-2">
+                  {/* Theme Toggle */}
+                  <div className="flex items-center gap-1 p-1 bg-linear-to-r from-neutral-100 via-neutral-100 to-white rounded-full text-black shadow-[0px_2px_0px_0px_var(--color-neutral-50)_inset,0px_0.5px_1px_0px_var(--color-neutral-400)] dark:from-black dark:via-black dark:to-neutral-900 dark:text-white dark:shadow-[0px_1px_0px_0px_var(--color-neutral-950)_inset,0px_1px_0px_0px_var(--color-neutral-800)]">
+                    {themeOptions.map(({ value, icon: Icon, label }) => (
+                      <button
+                        key={value}
+                        onClick={() => setTheme(value)}
+                        className={`p-2 rounded-full transition-all duration-200 ${
+                          theme === value
+                            ? "bg-cyan-500 text-white shadow-lg"
+                            : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                        }`}
+                        title={label}
+                      >
+                        <Icon size={16} />
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Create Publication Button */}
+                  <Link href="/create-publication">
+                    <button className="h-full w-full inline-flex gap-2 items-center cursor-pointer text-sm rounded-full bg-linear-to-r from-neutral-100 via-neutral-100 to-white px-4 py-2 text-black shadow-[0px_2px_0px_0px_var(--color-neutral-50)_inset,0px_0.5px_1px_0px_var(--color-neutral-400)] transition-all duration-100 active:scale-98 dark:from-black dark:via-black dark:to-neutral-900 dark:text-white dark:shadow-[0px_1px_0px_0px_var(--color-neutral-950)_inset,0px_1px_0px_0px_var(--color-neutral-800)]">
+                      <Plus size={16} />
+                      <span className="hidden lg:inline">Create</span>
+                    </button>
+                  </Link>
+                </div>
+              </NoiseBackground>
             </div>
 
-            {/* Create Publication */}
-            <Link
-              href="/create-publication"
-              className="flex items-center gap-2 px-4 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 transition-colors"
-            >
-              <Plus size={16} />
-              <span className="hidden lg:inline">Create</span>
-            </Link>
-
             {/* User Menu */}
-            <div className="relative group">
+            <div className="relative group border-l-4 pl-2">
               <button className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
                 {user?.avatar ? (
                   <img
                     src={getImageUrl(user, user.avatar) || "/placeholder.svg"}
                     alt={user.name}
-                    className="w-8 h-8 rounded-full object-cover"
+                    className="w-12 h-12 rounded-full object-cover"
                   />
                 ) : (
                   <div className="w-8 h-8 bg-cyan-500 rounded-full flex items-center justify-center">
@@ -103,13 +117,20 @@ export const Navbar = () => {
               </button>
 
               {/* Dropdown Menu */}
-              <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+              <div className="absolute right-0 mt-0 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                 <Link
                   href="/profile"
                   className="flex items-center gap-2 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-lg"
                 >
                   <User size={16} />
                   My Profile
+                </Link>
+                 <Link
+                  href="/journals"
+                  className="flex items-center gap-2 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-lg"
+                >
+                  <Book size={16} />
+                   Journals
                 </Link>
                 <button
                   onClick={signOut}
