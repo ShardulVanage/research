@@ -7,6 +7,8 @@ import { PublicationCard } from "@/components/publication-card"
 import { MeshGradientComponent } from "@/components/mesh-gradient"
 import { getPublications } from "@/lib/pocketbase"
 import { Loader2, BookOpen, TrendingUp, Users } from "lucide-react"
+import { BackgroundPaths } from "@/components/ui/background-paths"
+import { HeroSection } from "@/components/Hero"
 
 export default function HomePage() {
   const [publications, setPublications] = useState([])
@@ -51,43 +53,7 @@ export default function HomePage() {
 
         <main className="relative z-10">
           {/* Hero Section */}
-          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-              <div className="text-center">
-                <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-                  Discover Research Publications
-                </h1>
-                <p className="text-xl text-gray-600 dark:text-gray-400 mb-8 max-w-3xl mx-auto">
-                  Connect with researchers worldwide, share your work, and advance scientific knowledge together.
-                </p>
-
-                {/* Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-2xl mx-auto">
-                  <div className="text-center">
-                    <div className="flex items-center justify-center w-12 h-12 bg-cyan-100 dark:bg-cyan-900 rounded-lg mx-auto mb-3">
-                      <BookOpen className="w-6 h-6 text-cyan-600 dark:text-cyan-400" />
-                    </div>
-                    <div className="text-2xl font-bold text-gray-900 dark:text-white">{publications.length}+</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">Publications</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="flex items-center justify-center w-12 h-12 bg-green-100 dark:bg-green-900 rounded-lg mx-auto mb-3">
-                      <Users className="w-6 h-6 text-green-600 dark:text-green-400" />
-                    </div>
-                    <div className="text-2xl font-bold text-gray-900 dark:text-white">1K+</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">Researchers</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="flex items-center justify-center w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-lg mx-auto mb-3">
-                      <TrendingUp className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-                    </div>
-                    <div className="text-2xl font-bold text-gray-900 dark:text-white">10K+</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">Citations</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+         <HeroSection publications={publications} />
 
           {/* Publications Feed */}
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
