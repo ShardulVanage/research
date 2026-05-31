@@ -6,9 +6,17 @@ import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
 import { useTheme } from "@/contexts/theme-context"
-import { Search, Plus, User, LogOut, Sun, Moon, Monitor, Menu, X, Book } from "lucide-react"
+import { Search, Plus, User, LogOut, Sun, Moon, Monitor, Menu, X, Book, FileText, Crown, ExternalLink } from "lucide-react"
 import { getImageUrl } from "@/lib/pocketbase"
 import { NoiseBackground } from "@/components/ui/noise-background"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+} from "@/components/ui/dropdown-menu"
 
 export const Navbar = () => {
   const { user, signOut } = useAuth()
@@ -97,49 +105,92 @@ export const Navbar = () => {
               </NoiseBackground>
             </div>
 
-            {/* User Menu */}
-            <div className="relative group border-l-4 pl-2">
-              <button className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                {user?.avatar ? (
-                  <img
-                    src={getImageUrl(user, user.avatar) || "/placeholder.svg"}
-                    alt={user.name}
-                    className="w-12 h-12 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-8 h-8 bg-cyan-500 rounded-full flex items-center justify-center">
-                    <User size={16} className="text-white" />
-                  </div>
-                )}
-                <span className="hidden lg:inline text-sm font-medium text-gray-700 dark:text-gray-300">
-                  {user?.name || user?.email}
-                </span>
-              </button>
+            {/* User Menu — shadcn DropdownMenu */}
+            <div className="border-l-4 pl-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors outline-none">
+                    {user?.avatar ? (
+                      <img
+                        src={getImageUrl(user, user.avatar) || "/placeholder.svg"}
+                        alt={user.name}
+                        className="w-12 h-12 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 bg-cyan-500 rounded-full flex items-center justify-center">
+                        <User size={16} className="text-white" />
+                      </div>
+                    )}
+                    <span className="hidden lg:inline text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {user?.name || user?.email}
+                    </span>
+                  </button>
+                </DropdownMenuTrigger>
 
-              {/* Dropdown Menu */}
-              <div className="absolute right-0 mt-0 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                <Link
-                  href="/profile"
-                  className="flex items-center gap-2 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-lg"
-                >
-                  <User size={16} />
-                  My Profile
-                </Link>
-                 <Link
-                  href="/journals"
-                  className="flex items-center gap-2 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-lg"
-                >
-                  <Book size={16} />
-                   Journals
-                </Link>
-                <button
-                  onClick={signOut}
-                  className="flex items-center gap-2 w-full px-4 py-3 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-b-lg"
-                >
-                  <LogOut size={16} />
-                  Sign Out
-                </button>
-              </div>
+                <DropdownMenuContent align="end" className="w-52">
+
+                  {/* Profile section */}
+                  <DropdownMenuLabel className="text-xs text-gray-400 uppercase tracking-wider font-semibold px-2 py-1">
+                    Profile
+                  </DropdownMenuLabel>
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile" className="flex items-center gap-2 cursor-pointer">
+                      <User size={15} />
+                      My Profile
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/membership" className="flex items-center gap-2 cursor-pointer pl-6">
+                      <Crown size={15} />
+                      My Membership
+                    </Link>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuSeparator />
+
+                  {/* Journals section */}
+                  <DropdownMenuLabel className="text-xs text-gray-400 uppercase tracking-wider font-semibold px-2 py-1">
+                    Journals
+                  </DropdownMenuLabel>
+                 <DropdownMenuItem asChild>
+  <Link href="/journals" className="flex items-center gap-2 cursor-pointer">
+    <Book size={15} />
+    Journals
+  </Link>
+</DropdownMenuItem>
+<DropdownMenuItem asChild>
+<Link href="/journals/my-submission" className="flex items-center gap-2 cursor-pointer pl-6">
+    <FileText size={15} />
+    My Submissions
+  </Link>
+</DropdownMenuItem>
+ <DropdownMenuSeparator />
+                  {/* Visit main website */}
+                  <DropdownMenuItem asChild>
+                    <a
+                      href="https://zepresearch.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2  cursor-pointer mx-1 my-2 rounded-md bg-cyan-500 hover:bg-cyan-600 text-white focus:bg-cyan-600 focus:text-white px-3 py-2"
+                    >
+                      <ExternalLink size={15} className="text-white "/>
+                      <span className="font-medium">Visit Zep Research</span>
+                    </a>
+                  </DropdownMenuItem>
+
+
+                  <DropdownMenuSeparator />
+
+                  <DropdownMenuItem
+                    onClick={signOut}
+                    className="flex items-center gap-2 text-red-600 dark:text-red-400 cursor-pointer focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950/30"
+                  >
+                    <LogOut size={15} />
+                    Sign Out
+                  </DropdownMenuItem>
+
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
 
@@ -170,7 +221,7 @@ export const Navbar = () => {
             </form>
 
             {/* Mobile Navigation Links */}
-            <div className="space-y-2">
+            <div className="space-y-1">
               <Link
                 href="/create-publication"
                 className="flex items-center gap-2 px-4 py-2 text-cyan-600 dark:text-cyan-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
@@ -179,6 +230,9 @@ export const Navbar = () => {
                 <Plus size={16} />
                 Create Publication
               </Link>
+
+              {/* Profile group */}
+              <p className="px-4 pt-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Profile</p>
               <Link
                 href="/profile"
                 className="flex items-center gap-2 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
@@ -187,20 +241,59 @@ export const Navbar = () => {
                 <User size={16} />
                 My Profile
               </Link>
-              <button
-                onClick={() => {
-                  signOut()
-                  setIsMenuOpen(false)
-                }}
-                className="flex items-center gap-2 w-full px-4 py-2 text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
+              <Link
+                href="/membership"
+                className="flex items-center gap-2 px-8 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
+                onClick={() => setIsMenuOpen(false)}
               >
-                <LogOut size={16} />
-                Sign Out
-              </button>
+                <Crown size={16} />
+                My Membership
+              </Link>
+
+              {/* Journals group */}
+              <p className="px-4 pt-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Journals</p>
+              <Link
+                href="/journals"
+                className="flex items-center gap-2 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <Book size={16} />
+                Journals
+              </Link>
+              <Link
+                href="/journals/my-submissions"
+                className="flex items-center gap-2 px-8 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <FileText size={16} />
+                My Submissions
+              </Link>
+
+
+
+              <div className="pt-2">
+                <button
+                  onClick={() => { signOut(); setIsMenuOpen(false) }}
+                  className="flex items-center gap-2 w-full px-4 py-2 text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
+                >
+                  <LogOut size={16} />
+                  Sign Out
+                </button>
+              </div>
+               
             </div>
 
             {/* Mobile Theme Toggle */}
             <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+             <a
+                      href="https://zepresearch.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2  cursor-pointer mx-1 my-2 rounded-md bg-cyan-500 hover:bg-cyan-600 text-white focus:bg-cyan-600 focus:text-white px-3 py-2"
+                    >
+                      <ExternalLink size={15} className="text-white "/>
+                      <span className="font-medium">Visit Zep Research</span>
+                    </a>
               <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Theme</p>
               <div className="flex gap-2">
                 {themeOptions.map(({ value, icon: Icon, label }) => (

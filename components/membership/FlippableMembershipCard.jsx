@@ -16,6 +16,9 @@ export default function MembershipCard({
   hIndex = "24",
   validThrough = "12/25",
   plan = "Scholar Pro",
+  startDate = null,
+  endDate = null,
+  membershipStatus = "gradient",
   variant = "gradient",
 }) {
   const [isVisible, setIsVisible] = React.useState(false)
@@ -100,7 +103,7 @@ export default function MembershipCard({
                     </div>
                     <span className="text-[11px] tracking-[0.14em] opacity-85 font-medium">
                       MEMBERSHIP CARD
-                    </span>
+                    </span> 
                   </motion.div>
                   <motion.button
                     className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
@@ -139,17 +142,26 @@ export default function MembershipCard({
                   >
                     <div className="text-xs opacity-70 mb-1">VALID THROUGH</div>
                     <div className="font-medium text-center text-sm font-mono">
-                      {(() => {
-                        const today = new Date()
-                        const currentMonth = String(today.getMonth() + 1).padStart(2, '0')
-                        const currentYear = String(today.getFullYear()).slice(-2)
-                        
-                        const nextDate = new Date(today.getFullYear(), today.getMonth() + 1, 1)
-                        const nextMonth = String(nextDate.getMonth() + 1).padStart(2, '0')
-                        const nextYear = String(nextDate.getFullYear()).slice(-2)
-                        
-                        return `  ${nextMonth}/${nextYear}`
-                      })()}
+                      {endDate ? (
+                        (() => {
+                          const date = new Date(endDate);
+                          const month = String(date.getMonth() + 1).padStart(2, '0');
+                          const year = String(date.getFullYear()).slice(-2);
+                          return `${month}/${year}`;
+                        })()
+                      ) : (
+                        (() => {
+                          const today = new Date()
+                          const currentMonth = String(today.getMonth() + 1).padStart(2, '0')
+                          const currentYear = String(today.getFullYear()).slice(-2)
+                          
+                          const nextDate = new Date(today.getFullYear(), today.getMonth() + 1, 1)
+                          const nextMonth = String(nextDate.getMonth() + 1).padStart(2, '0')
+                          const nextYear = String(nextDate.getFullYear()).slice(-2)
+                          
+                          return `  ${nextMonth}/${nextYear}`
+                        })()
+                      )}
                     </div>
                   </motion.div>
                   <motion.div
@@ -184,21 +196,29 @@ export default function MembershipCard({
               <div className="absolute bottom-5 left-8 right-8 text-white text-xs space-y-2">
                 <div className="flex justify-between">
                   <div>
-                    <div className="opacity-60 text-[9px] tracking-widest mb-0.5">ORCID</div>
+                    <div className="opacity-60 text-[9px] tracking-widest mb-0.5">STARTED</div>
                     <div className="font-mono opacity-85">
-                      {isVisible ? orcid : "••••-••••-1825-••••"}
+                      {startDate ? new Date(startDate).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: '2-digit'}) : 'N/A'}
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <div className="opacity-60 text-[9px] tracking-widest mb-0.5">EXPIRES</div>
+                    <div className="font-mono opacity-85">
+                      {endDate ? new Date(endDate).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: '2-digit'}) : 'N/A'}
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="opacity-60 text-[9px] tracking-widest mb-0.5">H-INDEX</div>
-                    <div className="font-mono opacity-85">{isVisible ? hIndex : "••"}</div>
-                  </div>
-                  <div className="flex items-center gap-1 text-[10px] bg-green-500/25 border border-green-300/40 rounded px-2 py-1">
-                    ✓ Verified
+                    <div className="opacity-60 text-[9px] tracking-widest mb-0.5">STATUS</div>
+                    <div className="flex items-center gap-1 text-[10px] bg-green-500/25 border border-green-300/40 rounded px-2 py-1">
+                      ✓ Active
+                    </div>
                   </div>
                 </div>
                 <p className="opacity-50 text-[9px] leading-relaxed">
-                  50,000+ indexed journals · DOI Access · Peer Review · Preprint Submission
+                  {membershipStatus === 'trial' && '30 days · Limited access · Upgrade anytime'}
+                  {membershipStatus === 'yearly' && '12 months · Full access · Auto-renews annually'}
+                  {membershipStatus === 'lifetime' && 'Lifetime · Unlimited access · No expiration'}
+                  {!['trial', 'yearly', 'lifetime'].includes(membershipStatus) && '50,000+ indexed journals · DOI Access · Peer Review · Preprint Submission'}
                 </p>
               </div>
             </motion.div>
@@ -232,3 +252,6 @@ export default function MembershipCard({
     </div>
   )
 }
+
+export const CreditCard = MembershipCard;
+export const FlippableMembershipCard = MembershipCard;
