@@ -45,8 +45,8 @@ function FloatingPaths({ position }) {
 
 function MembershipCard() {
   const perks = [
-    "50% off paper submission fees",
-    "Free conference registrations",
+    "5% off paper submission fees",
+    "Conference registrations discounts",
     "Early access to publications",
     "Priority peer-review queue",
     "Exclusive researcher network",
@@ -65,24 +65,31 @@ function MembershipCard() {
         <div className="h-0.5 w-full bg-gradient-to-r from-red-400 via-rose-500 to-orange-400 shrink-0" />
         <div className="flex flex-col flex-1 p-4 gap-3 min-h-0">
 
+          {/* Header badges */}
           <div className="flex items-center gap-2 shrink-0">
             <span className="inline-flex items-center gap-1 bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-300 text-[10px] font-bold px-2 py-0.5 rounded-full tracking-wide">
               <Star className="w-2.5 h-2.5 fill-current" />
               RESEARCHER PRO
             </span>
-            <span className="text-[10px] text-gray-400 dark:text-gray-500 font-medium">Most Popular</span>
+            <span className="inline-flex items-center gap-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-300 text-[10px] font-bold px-2 py-0.5 rounded-full tracking-wide">
+              FREE TRIAL
+            </span>
           </div>
 
+          {/* Trial headline */}
           <div className="shrink-0">
             <div className="flex items-end gap-1 leading-none">
-              <span className="text-4xl font-semibold text-gray-900 dark:text-white tracking-tight">₹4,999</span>
-              <span className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">/year</span>
+              <span className="text-4xl font-semibold text-gray-900 dark:text-white tracking-tight">30 Days</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">free</span>
             </div>
-            <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">Billed annually · cancel anytime</p>
+            <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">
+              No credit card required · 
+            </p>
           </div>
 
           <div className="h-px bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-700 to-transparent shrink-0" />
 
+          {/* Perks list */}
           <ul className="flex flex-col gap-1.5 flex-1 min-h-0 overflow-hidden">
             {perks.map((perk, i) => (
               <motion.li
@@ -98,10 +105,11 @@ function MembershipCard() {
             ))}
           </ul>
 
+          {/* CTA */}
           <div className="shrink-0">
             <Link href="/membership">
               <button className="w-full flex items-center justify-center gap-1.5 bg-gradient-to-r from-rose-500 to-orange-400 hover:from-red-400 hover:to-red-400 text-white font-semibold text-xs py-2 rounded-lg shadow-md shadow-red-500/20 hover:shadow-red-500/35 transition-all duration-200 group">
-                Get Membership
+                Claim Free Trial
                 <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
               </button>
             </Link>

@@ -1,0 +1,1 @@
+export { AccommodationForm } from "./AccommodationForm"

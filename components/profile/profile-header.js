@@ -1,15 +1,54 @@
 "use client"
 
-import { useState, useRef } from "react"
-import { Camera, Edit3, Save, X, MapPin, Mail, Globe, Briefcase } from "lucide-react"
-import { getImageUrl, updateUserProfile } from "@/lib/pocketbase"
+import { useState, useRef, useEffect } from "react"
+import { Camera, Edit3, Save, X, MapPin, Mail, Globe, Briefcase, Crown, Star, Zap, Shield } from "lucide-react"
+import { getImageUrl, updateUserProfile, checkUserMembership } from "@/lib/pocketbase"
 import { ExpandableText } from "./expandable-text"
 
+// ── Membership Badge ──────────────────────────────────────────────────────────
+function MembershipBadge({ plan }) {
+   const configs = {
+    trial: {
+      label: "Zep Member",
+      icon: <Crown size={11} />,
+      className: "bg-gradient-to-r from-gray-400 to-gray-500 text-white shadow-gray-400/40",
+    },
+    basic: {
+      label: "Zep Member",
+      icon: <Star size={11} />,
+      className: "bg-gradient-to-r from-yellow-500 to-yellow-600 text-white shadow-yellow-400/40",
+    },
+    pro: {
+      label: "Pro",
+      icon: <Shield size={11} />,
+      className: "bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-violet-400/40",
+    },
+    premium: {
+      label: "Premium",
+      icon: <Crown size={11} />,
+      className: "bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow-amber-400/40",
+    },
+  }
+  const config = configs[plan?.toLowerCase()] ?? configs.basic
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold shadow-md tracking-wide uppercase ${config.className}`}
+    >
+      {config.icon}
+      {config.label}
+    </span>
+  )
+}
+
+// ── Main Component ────────────────────────────────────────────────────────────
 export function ProfileHeader({ user, onUpdate }) {
   const [editMode, setEditMode] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
+  const [membership, setMembership] = useState(null) // { isMember, data }
   const headerRef = useRef(null)
+
   const [profileData, setProfileData] = useState({
     name: user?.name || "",
     headline: user?.headline || "",
@@ -25,9 +64,18 @@ export function ProfileHeader({ user, onUpdate }) {
     profile_banner: null,
   })
 
+  // Fetch membership on mount / when user changes
+  useEffect(() => {
+    if (!user?.id) return
+    checkUserMembership(user.id).then((result) => {
+      if (result.success) {
+        setMembership(result)
+      }
+    })
+  }, [user?.id])
+
   const handleChange = (e) => {
     const { name, value, files, type, checked } = e.target
-
     if ((name === "avatar" || name === "profile_banner") && files?.[0]) {
       setProfileData((prev) => ({ ...prev, [name]: files[0] }))
     } else if (type === "checkbox") {
@@ -41,10 +89,8 @@ export function ProfileHeader({ user, onUpdate }) {
   const handleSave = async () => {
     setSaving(true)
     setError("")
-
     try {
       const updateData = new FormData()
-
       Object.keys(profileData).forEach((key) => {
         if ((key === "avatar" || key === "profile_banner") && profileData[key]) {
           updateData.append(key, profileData[key])
@@ -56,11 +102,9 @@ export function ProfileHeader({ user, onUpdate }) {
       })
 
       const result = await updateUserProfile(user.id, updateData)
-
       if (result.success) {
         setEditMode(false)
         onUpdate?.()
-        // Prevent scroll by using scrollIntoView instead of page reload
         headerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
       } else {
         let errorMessage = result.error
@@ -75,13 +119,18 @@ export function ProfileHeader({ user, onUpdate }) {
     } catch (err) {
       setError("An unexpected error occurred")
     }
-
     setSaving(false)
   }
 
+  const isMember = membership?.isMember
+  const memberPlan = membership?.data?.plan
+
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden mb-6" ref={headerRef}>
-      {/* Profile Banner */}
+    <div
+      className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden mb-6"
+      ref={headerRef}
+    >
+      {/* ── Profile Banner ── */}
       <div className="relative h-48 bg-gradient-to-r from-cyan-400 to-blue-500 overflow-hidden group">
         {user?.profile_banner ? (
           <img
@@ -102,7 +151,7 @@ export function ProfileHeader({ user, onUpdate }) {
         )}
       </div>
 
-      {/* Profile Content */}
+      {/* ── Profile Content ── */}
       <div className="px-6 pb-6">
         {error && (
           <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
@@ -110,7 +159,7 @@ export function ProfileHeader({ user, onUpdate }) {
           </div>
         )}
 
-        {/* Avatar and Header */}
+        {/* Avatar + Edit Button row */}
         <div className="flex flex-col md:flex-row md:items-end md:gap-6 mb-6 -mt-24 relative z-10">
           {/* Avatar */}
           <div className="relative">
@@ -128,6 +177,13 @@ export function ProfileHeader({ user, onUpdate }) {
               </div>
             )}
 
+            {/* ── Membership Badge — overlaid on avatar bottom-left ── */}
+            {isMember && (
+              <div className="absolute -bottom-2 -left-1 z-20">
+                <MembershipBadge plan={memberPlan} />
+              </div>
+            )}
+
             {editMode && (
               <label className="absolute bottom-2 right-2 bg-cyan-500 text-white p-3 rounded-full cursor-pointer hover:bg-cyan-600 transition-colors shadow-lg z-50">
                 <Camera size={18} />
@@ -136,7 +192,7 @@ export function ProfileHeader({ user, onUpdate }) {
             )}
           </div>
 
-          {/* Edit Button */}
+          {/* Edit / Save buttons */}
           <div className="flex gap-2 ml-auto">
             {editMode ? (
               <>
@@ -177,7 +233,7 @@ export function ProfileHeader({ user, onUpdate }) {
           </div>
         </div>
 
-        {/* Main Info */}
+        {/* ── Main Info ── */}
         {editMode ? (
           <div className="space-y-4 mb-6">
             <div>
@@ -303,10 +359,18 @@ export function ProfileHeader({ user, onUpdate }) {
           </div>
         ) : (
           <div className="mb-6">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-1">{user?.name || user?.email}</h1>
+            {/* Name + inline membership badge */}
+            <div className="flex flex-wrap items-center gap-3 mb-1">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                {user?.name || user?.email}
+              </h1>
+              {isMember && <MembershipBadge plan={memberPlan} />}
+            </div>
+
             {user?.headline && (
               <p className="text-lg text-gray-600 dark:text-gray-400 mb-4">{user.headline}</p>
             )}
+
             <div className="flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-400">
               {user?.location && (
                 <span className="flex items-center gap-2">
@@ -330,6 +394,7 @@ export function ProfileHeader({ user, onUpdate }) {
                 </a>
               )}
             </div>
+
             {user?.bio && (
               <div className="mt-4">
                 <ExpandableText text={user.bio} maxLength={200} />
@@ -338,7 +403,7 @@ export function ProfileHeader({ user, onUpdate }) {
           </div>
         )}
 
-        {/* Additional Info */}
+        {/* ── Additional Info ── */}
         {!editMode && (
           <div className="flex flex-wrap gap-6 pt-4 border-t border-gray-200 dark:border-gray-700">
             {user?.institution && (
@@ -368,6 +433,18 @@ export function ProfileHeader({ user, onUpdate }) {
             {user?.is_scientific && (
               <div className="px-3 py-1 bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-400 rounded-full text-xs font-medium">
                 Scientific Researcher
+              </div>
+            )}
+            {/* Membership expiry hint */}
+            {isMember && membership?.data?.end_date && (
+              <div className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500 ml-auto">
+                <Crown size={12} />
+                Member until{" "}
+                {new Date(membership.data.end_date).toLocaleDateString(undefined, {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                })}
               </div>
             )}
           </div>

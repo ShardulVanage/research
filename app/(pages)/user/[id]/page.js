@@ -16,9 +16,53 @@ import {
   getProjects,
   getSkills,
   getImageUrl,
+  checkUserMembership,
 } from "@/lib/pocketbase"
-import { Mail, Globe, Building, MapPin, BookOpen, Eye, Users, Award, Loader2, Briefcase, GraduationCap, Award as AwardIcon, Code2, Github, Linkedin, Twitter, Instagram, Facebook, Youtube, ExternalLink } from "lucide-react"
+import {
+  Mail, Globe, MapPin, BookOpen, Eye, Users, Award, Loader2,
+  Briefcase, GraduationCap, Award as AwardIcon, Code2,
+  Github, Linkedin, Twitter, Instagram, Facebook, Youtube,
+  ExternalLink, Crown, Star, Zap, Shield,
+} from "lucide-react"
 
+// ── Membership Badge ──────────────────────────────────────────────────────────
+function MembershipBadge({ plan }) {
+  const configs = {
+    trial: {
+      label: "Zep Member",
+      icon: <Crown size={11} />,
+      className: "bg-gradient-to-r from-gray-400 to-gray-500 text-white shadow-gray-400/40",
+    },
+    basic: {
+      label: "Zep Member",
+      icon: <Star size={11} />,
+      className: "bg-gradient-to-r from-yellow-500 to-yellow-600 text-white shadow-yellow-400/40",
+    },
+    pro: {
+      label: "Pro",
+      icon: <Shield size={11} />,
+      className: "bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-violet-400/40",
+    },
+    premium: {
+      label: "Premium",
+      icon: <Crown size={11} />,
+      className: "bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow-amber-400/40",
+    },
+  }
+
+  const config = configs[plan?.toLowerCase()] ?? configs.basic
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold shadow-md tracking-wide uppercase ${config.className}`}
+    >
+      {config.icon}
+      {config.label}
+    </span>
+  )
+}
+
+// ── Main Page ─────────────────────────────────────────────────────────────────
 export default function UserProfilePage() {
   const { id } = useParams()
   const [user, setUser] = useState(null)
@@ -28,6 +72,7 @@ export default function UserProfilePage() {
   const [certifications, setCertifications] = useState([])
   const [projects, setProjects] = useState([])
   const [skills, setSkills] = useState([])
+  const [membership, setMembership] = useState(null)
   const [loading, setLoading] = useState(true)
   const [publicationsLoading, setPublicationsLoading] = useState(false)
   const [error, setError] = useState("")
@@ -42,9 +87,11 @@ export default function UserProfilePage() {
   const loadUserProfile = async () => {
     setLoading(true)
     const result = await getUserById(id)
-
     if (result.success) {
       setUser(result.data)
+      // Fetch membership once we have the user
+      const memberResult = await checkUserMembership(id)
+      if (memberResult.success) setMembership(memberResult)
     } else {
       setError(result.error)
     }
@@ -85,33 +132,26 @@ export default function UserProfilePage() {
   const getSocialIcon = (platform) => {
     const iconProps = { size: 14, className: "flex-shrink-0" }
     switch (platform.toLowerCase()) {
-      case "github":
-        return <Github {...iconProps} />
-      case "linkedin":
-        return <Linkedin {...iconProps} />
-      case "twitter":
-        return <Twitter {...iconProps} />
-      case "instagram":
-        return <Instagram {...iconProps} />
-      case "facebook":
-        return <Facebook {...iconProps} />
-      case "youtube":
-        return <Youtube {...iconProps} />
-      case "portfolio":
-        return <ExternalLink {...iconProps} />
-      default:
-        return <Globe {...iconProps} />
+      case "github":     return <Github {...iconProps} />
+      case "linkedin":   return <Linkedin {...iconProps} />
+      case "twitter":    return <Twitter {...iconProps} />
+      case "instagram":  return <Instagram {...iconProps} />
+      case "facebook":   return <Facebook {...iconProps} />
+      case "youtube":    return <Youtube {...iconProps} />
+      case "portfolio":  return <ExternalLink {...iconProps} />
+      default:           return <Globe {...iconProps} />
     }
   }
 
   const ensureAbsoluteUrl = (url) => {
     if (!url) return ""
-    if (url.startsWith("http://") || url.startsWith("https://")) {
-      return url
-    }
-    return "https://" + url
+    return url.startsWith("http://") || url.startsWith("https://") ? url : "https://" + url
   }
 
+  const isMember  = membership?.isMember
+  const memberPlan = membership?.data?.plan
+
+  // ── Loading ──
   if (loading) {
     return (
       <ProtectedRoute>
@@ -126,6 +166,7 @@ export default function UserProfilePage() {
     )
   }
 
+  // ── Not found ──
   if (error || !user) {
     return (
       <ProtectedRoute>
@@ -156,9 +197,9 @@ export default function UserProfilePage() {
         <Navbar />
 
         <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Profile Header */}
+          {/* ── Profile Header ── */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mb-8 overflow-hidden">
-            {/* Banner Image */}
+            {/* Banner */}
             <div className="relative w-full h-48 bg-gradient-to-r from-cyan-400 to-blue-500 overflow-hidden">
               {user.profile_banner ? (
                 <img
@@ -167,15 +208,15 @@ export default function UserProfilePage() {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500"></div>
+                <div className="w-full h-full bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500" />
               )}
             </div>
 
             {/* Profile Content */}
             <div className="px-6 pb-6">
               <div className="flex flex-col md:flex-row md:items-end md:gap-6 -mt-16 mb-6 relative z-10">
-                {/* Avatar */}
-                <div className="flex-shrink-0">
+                {/* Avatar + membership badge overlay */}
+                <div className="flex-shrink-0 relative">
                   {user.avatar ? (
                     <img
                       src={getImageUrl(user, user.avatar) || "/placeholder.svg"}
@@ -189,73 +230,85 @@ export default function UserProfilePage() {
                       </span>
                     </div>
                   )}
-                </div>
 
-                {/* User Info */}
+                  {/* Badge pinned to avatar bottom-left */}
+                  {isMember && (
+                    <div className="absolute -bottom-2 -left-1 z-20">
+                      <MembershipBadge plan={memberPlan} />
+                    </div>
+                  )}
+                </div>
               </div>
-                <div className="flex-1">
-                  <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-1">{user.name || user.email}</h1>
 
-                  {user.position && user.institution && (
-                    <p className="text-lg text-gray-600 dark:text-gray-400 mb-3">
-                      {user.position} at {user.institution}
-                    </p>
-                  )}
+              {/* Name + inline badge */}
+              <div className="flex flex-wrap items-center gap-3 mb-1">
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                  {user.name || user.email}
+                </h1>
+                {isMember && <MembershipBadge plan={memberPlan} />}
+              </div>
 
-                  {user.location && (
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 flex items-center gap-1">
-                      <MapPin size={16} />
-                      {user.location}
-                    </p>
-                  )}
+              {user.position && user.institution && (
+                <p className="text-lg text-gray-600 dark:text-gray-400 mb-3">
+                  {user.position} at {user.institution}
+                </p>
+              )}
 
-                  {/* Contact Info Row */}
-                  <div className="flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-400">
-                    <span className="flex items-center gap-1">
-                      <Mail size={14} />
-                      {user.email}
-                    </span>
-                    {user.website && (
-                      <a
-                        href={ensureAbsoluteUrl(user.website)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors"
-                      >
-                        <Globe size={14} />
-                        Website
-                      </a>
-                    )}
-                    {user.social_links && typeof user.social_links === 'object' && Object.entries(user.social_links).map(([platform, url]) => (
-                      <a
-                        key={platform}
-                        href={ensureAbsoluteUrl(url)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors capitalize"
-                      >
-                        {getSocialIcon(platform)}
-                        {platform}
-                      </a>
-                    ))}
-                  </div>
+              {user.location && (
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 flex items-center gap-1">
+                  <MapPin size={16} />
+                  {user.location}
+                </p>
+              )}
 
-                  {/* Badges */}
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {user.is_scientific && (
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-300">
-                        ✓ Scientific Researcher
-                      </span>
-                    )}
-                    {user.open_to_work && (
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
-                        💼 Open to Work
-                      </span>
-                    )}
-                  </div>
-                </div>
+              {/* Contact / Social Row */}
+              <div className="flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-400">
+                <span className="flex items-center gap-1">
+                  <Mail size={14} />
+                  {user.email}
+                </span>
+                {user.website && (
+                  <a
+                    href={ensureAbsoluteUrl(user.website)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors"
+                  >
+                    <Globe size={14} />
+                    Website
+                  </a>
+                )}
+                {user.social_links &&
+                  typeof user.social_links === "object" &&
+                  Object.entries(user.social_links).map(([platform, url]) => (
+                    <a
+                      key={platform}
+                      href={ensureAbsoluteUrl(url)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors capitalize"
+                    >
+                      {getSocialIcon(platform)}
+                      {platform}
+                    </a>
+                  ))}
+              </div>
 
-              {/* Bio Section */}
+              {/* Status Badges row */}
+              <div className="mt-3 flex flex-wrap gap-2">
+                {user.is_scientific && (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-300">
+                    ✓ Scientific Researcher
+                  </span>
+                )}
+                {user.open_to_work && (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
+                    💼 Open to Work
+                  </span>
+                )}
+              </div>
+
+              {/* Bio */}
               {user.bio && (
                 <div className="mt-6 pb-6 border-b border-gray-200 dark:border-gray-700">
                   <ExpandableText text={user.bio} maxLength={250} />
@@ -315,10 +368,23 @@ export default function UserProfilePage() {
                   <div className="text-sm text-gray-600 dark:text-gray-400">Downloads</div>
                 </div>
               </div>
+
+              {/* Membership expiry hint */}
+              {isMember && membership?.data?.end_date && (
+                <div className="mt-4 flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500">
+                  <Crown size={12} />
+                  Member until{" "}
+                  {new Date(membership.data.end_date).toLocaleDateString(undefined, {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  })}
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Publications Section */}
+          {/* ── Publications ── */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="p-6 border-b border-gray-200 dark:border-gray-700">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">Publications</h2>
@@ -326,7 +392,6 @@ export default function UserProfilePage() {
                 {publications.length} publication{publications.length !== 1 ? "s" : ""}
               </p>
             </div>
-
             <div className="p-6">
               {publicationsLoading ? (
                 <div className="flex items-center justify-center py-12">
@@ -349,7 +414,7 @@ export default function UserProfilePage() {
             </div>
           </div>
 
-          {/* Experience Section */}
+          {/* ── Experience ── */}
           {experiences.length > 0 && (
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mt-8">
               <div className="p-6 border-b border-gray-200 dark:border-gray-700">
@@ -358,7 +423,6 @@ export default function UserProfilePage() {
                   Experience
                 </h2>
               </div>
-
               <div className="p-6 space-y-6">
                 {experiences.map((exp) => (
                   <div key={exp.id} className="pb-6 border-b border-gray-200 dark:border-gray-700 last:border-b-0 last:pb-0">
@@ -375,7 +439,7 @@ export default function UserProfilePage() {
             </div>
           )}
 
-          {/* Education Section */}
+          {/* ── Education ── */}
           {education.length > 0 && (
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mt-8">
               <div className="p-6 border-b border-gray-200 dark:border-gray-700">
@@ -384,7 +448,6 @@ export default function UserProfilePage() {
                   Education
                 </h2>
               </div>
-
               <div className="p-6 space-y-6">
                 {education.map((edu) => (
                   <div key={edu.id} className="pb-6 border-b border-gray-200 dark:border-gray-700 last:border-b-0 last:pb-0">
@@ -404,7 +467,7 @@ export default function UserProfilePage() {
             </div>
           )}
 
-          {/* Certifications Section */}
+          {/* ── Certifications ── */}
           {certifications.length > 0 && (
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mt-8">
               <div className="p-6 border-b border-gray-200 dark:border-gray-700">
@@ -413,7 +476,6 @@ export default function UserProfilePage() {
                   Certifications
                 </h2>
               </div>
-
               <div className="p-6 space-y-4">
                 {certifications.map((cert) => (
                   <div key={cert.id} className="pb-4 border-b border-gray-200 dark:border-gray-700 last:border-b-0 last:pb-0">
@@ -425,7 +487,7 @@ export default function UserProfilePage() {
             </div>
           )}
 
-          {/* Projects Section */}
+          {/* ── Projects ── */}
           {projects.length > 0 && (
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mt-8">
               <div className="p-6 border-b border-gray-200 dark:border-gray-700">
@@ -434,7 +496,6 @@ export default function UserProfilePage() {
                   Projects
                 </h2>
               </div>
-
               <div className="p-6 space-y-6">
                 {projects.map((proj) => (
                   <div key={proj.id} className="pb-6 border-b border-gray-200 dark:border-gray-700 last:border-b-0 last:pb-0">
@@ -460,13 +521,12 @@ export default function UserProfilePage() {
             </div>
           )}
 
-          {/* Skills Section */}
+          {/* ── Skills ── */}
           {skills.length > 0 && (
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mt-8">
               <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">Skills</h2>
               </div>
-
               <div className="p-6">
                 <div className="flex flex-wrap gap-2">
                   {skills.map((skill) => (
