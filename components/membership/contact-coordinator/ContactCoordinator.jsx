@@ -30,9 +30,9 @@ export const ContactCoordinator = () => {
       phone: "+1 (555) 234-5678",
       specialization: "Accommodation & Travel",
       bio: "Handles all accommodation and travel arrangements for events",
-      color: "from-blue-500 to-purple-500",
-      lightColor: "from-blue-100 to-purple-100",
-      darkColor: "from-blue-900/40 to-purple-900/40",
+      color: "from-blue-500 to-cyan-500",
+      lightColor: "from-blue-100 to-cyan-100",
+      darkColor: "from-blue-900/40 to-cyan-900/40",
     },
     {
       id: 3,
@@ -43,9 +43,9 @@ export const ContactCoordinator = () => {
       phone: "+1 (555) 345-6789",
       specialization: "Journal Submissions",
       bio: "Provides guidance and support for journal submissions and publications",
-      color: "from-purple-500 to-pink-500",
-      lightColor: "from-purple-100 to-pink-100",
-      darkColor: "from-purple-900/40 to-pink-900/40",
+      color: "from-cyan-500 to-blue-500",
+      lightColor: "from-cyan-100 to-blue-100",
+      darkColor: "from-cyan-900/40 to-blue-900/40",
     },
     {
       id: 4,
@@ -56,9 +56,9 @@ export const ContactCoordinator = () => {
       phone: "+1 (555) 456-7890",
       specialization: "General Inquiries",
       bio: "General member support and event coordination",
-      color: "from-pink-500 to-cyan-500",
-      lightColor: "from-pink-100 to-cyan-100",
-      darkColor: "from-pink-900/40 to-cyan-900/40",
+      color: "from-blue-500 to-cyan-500",
+      lightColor: "from-blue-100 to-cyan-100",
+      darkColor: "from-blue-900/40 to-cyan-900/40",
     },
   ]
 
@@ -73,7 +73,7 @@ export const ContactCoordinator = () => {
   return (
     <section className="py-16 bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
       <div className="container mx-auto px-4">
-        <div className="mb-12">
+        <div className="mb-12 flex flex-col items-center text-center">
           <div className="inline-block mb-4">
             <span className="text-sm font-semibold text-cyan-600 dark:text-cyan-400 uppercase tracking-wider">Support Team</span>
           </div>
@@ -159,7 +159,7 @@ export const ContactCoordinator = () => {
 
         {/* Main Office Card */}
         <Card className="overflow-hidden border-0 shadow-lg bg-gradient-to-br from-cyan-50 to-blue-50 dark:from-cyan-900/20 dark:to-blue-900/20">
-          <div className="h-1 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500" />
+          <div className="h-1 bg-gradient-to-r from-cyan-500 via-blue-500 to-cyan-500" />
 
           <CardHeader className="pb-6">
             <div className="flex items-start gap-3">

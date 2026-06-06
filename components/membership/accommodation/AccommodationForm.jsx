@@ -120,7 +120,7 @@ export const AccommodationForm = () => {
                 Logistics
               </span>
             </div>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-gray-900 dark:text-white mb-4">
+            <h2 className="text-3xl sm:text-4xl lg:text-4xl font-bold tracking-tight text-gray-900 dark:text-white mb-4">
               Book Your Accommodation
             </h2>
             <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400">

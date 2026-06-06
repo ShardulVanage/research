@@ -116,12 +116,12 @@ export const RegistrationConferences = () => {
               ))}
             </div>
 
-            {/* Scroll Buttons */}
+            {/* Scroll Buttons - Desktop (Side) */}
             {conferences.length > 2 && (
               <>
                 <button
                   onClick={() => scroll("left")}
-                  className={`absolute -left-14 top-1/2 -translate-y-1/2 z-10 p-2.5 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 ${
+                  className={`hidden md:flex absolute -left-14 top-1/2 -translate-y-1/2 z-10 p-2.5 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 ${
                     canScrollLeft
                       ? "opacity-100 hover:shadow-lg"
                       : "opacity-40 cursor-not-allowed"
@@ -132,7 +132,7 @@ export const RegistrationConferences = () => {
                 </button>
                 <button
                   onClick={() => scroll("right")}
-                  className={`absolute -right-14 top-1/2 -translate-y-1/2 z-10 p-2.5 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 ${
+                  className={`hidden md:flex absolute -right-14 top-1/2 -translate-y-1/2 z-10 p-2.5 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 ${
                     canScrollRight
                       ? "opacity-100 hover:shadow-lg"
                       : "opacity-40 cursor-not-allowed"
@@ -142,6 +142,34 @@ export const RegistrationConferences = () => {
                   <ChevronRight className="w-5 h-5 text-gray-700 dark:text-gray-300" />
                 </button>
               </>
+            )}
+
+            {/* Scroll Buttons - Mobile & Tablet (Bottom) */}
+            {conferences.length > 2 && (
+              <div className="md:hidden flex items-center justify-center gap-3 mt-6">
+                <button
+                  onClick={() => scroll("left")}
+                  className={`p-2.5 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 ${
+                    canScrollLeft
+                      ? "opacity-100 hover:shadow-lg"
+                      : "opacity-40 cursor-not-allowed"
+                  }`}
+                  disabled={!canScrollLeft}
+                >
+                  <ChevronLeft className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+                </button>
+                <button
+                  onClick={() => scroll("right")}
+                  className={`p-2.5 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 ${
+                    canScrollRight
+                      ? "opacity-100 hover:shadow-lg"
+                      : "opacity-40 cursor-not-allowed"
+                  }`}
+                  disabled={!canScrollRight}
+                >
+                  <ChevronRight className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+                </button>
+              </div>
             )}
           </div>
         )}

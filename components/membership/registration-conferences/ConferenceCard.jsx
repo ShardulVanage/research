@@ -74,7 +74,7 @@ export const ConferenceCard = ({
         transition: { type: 'spring', stiffness: 300, damping: 20 },
       }}
       className={cn(
-        'w-full max-w-sm overflow-hidden rounded-2xl border bg-card text-card-foreground shadow-lg cursor-pointer',
+        'w-full max-w-sm overflow-hidden rounded-2xl border dark:bg-gray-800 text-card-foreground shadow-lg cursor-pointer',
         className
       )}
     >
