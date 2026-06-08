@@ -10,13 +10,14 @@ import {
   getPublicationById,
   getComments,
   createComment,
+  createCommentReply,
   incrementViewCount,
-  getImageUrl,
   getPublicationFiles,
   incrementDownloadCount,
 } from "@/lib/pocketbase"
-import { Calendar, User, Eye, Download, MessageCircle, ExternalLink, Send, Loader2, FileText } from "lucide-react"
+import { Calendar, User, Eye, Download, MessageCircle, ExternalLink, Loader2, FileText } from "lucide-react"
 import { ImageGallery } from "@/components/image-gallery"
+import { CommentSection } from "@/components/publication/CommentSection"
 
 export default function PublicationDetailPage() {
   const { id } = useParams()
@@ -27,7 +28,6 @@ export default function PublicationDetailPage() {
   const [commentsLoading, setCommentsLoading] = useState(false)
   const [commentSubmitting, setCommentSubmitting] = useState(false)
   const [error, setError] = useState("")
-  const [newComment, setNewComment] = useState("")
   const [publicationFiles, setPublicationFiles] = useState([])
   const [filesLoading, setFilesLoading] = useState(false)
 
@@ -73,20 +73,28 @@ export default function PublicationDetailPage() {
     setFilesLoading(false)
   }
 
-  const handleCommentSubmit = async (e) => {
-    e.preventDefault()
-    if (!newComment.trim()) return
-
+  const handleCommentSubmit = async (content) => {
     setCommentSubmitting(true)
     const result = await createComment({
       publication: id,
       user: user.id,
-      content: newComment.trim(),
+      content: content,
     })
 
     if (result.success) {
-      setNewComment("")
-      loadComments() // Reload comments
+      loadComments()
+    } else {
+      setError(result.error)
+    }
+    setCommentSubmitting(false)
+  }
+
+  const handleCommentReplySubmit = async (content, parentCommentId) => {
+    setCommentSubmitting(true)
+    const result = await createCommentReply(id, user.id, content, parentCommentId)
+
+    if (result.success) {
+      loadComments()
     } else {
       setError(result.error)
     }
@@ -297,8 +305,20 @@ export default function PublicationDetailPage() {
                       <ExternalLink size={14} />
                     </a>
                   </div>
-                )}
-              </div>
+                )}                {publication.file_url && (
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Publication URL</h3>
+                    <a
+                      href={publication.file_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 transition-colors truncate"
+                    >
+                      View Publication
+                      <ExternalLink size={14} />
+                    </a>
+                  </div>
+                )}              </div>
 
               {/* Keywords */}
               {publication.keywords && (
@@ -365,115 +385,15 @@ export default function PublicationDetailPage() {
           </div>
 
           {/* Comments Section */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Comments ({comments.length})</h2>
-            </div>
-
-            <div className="p-6">
-              {/* Comment Form */}
-              <form onSubmit={handleCommentSubmit} className="mb-8">
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0">
-                    {user?.avatar ? (
-                      <img
-                        src={getImageUrl(user, user.avatar) || "/placeholder.svg"}
-                        alt={user.name}
-                        className="w-10 h-10 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-10 h-10 bg-cyan-500 rounded-full flex items-center justify-center">
-                        <span className="text-sm font-bold text-white">
-                          {(user?.name || user?.email || "U").charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <textarea
-                      value={newComment}
-                      onChange={(e) => setNewComment(e.target.value)}
-                      placeholder="Add a comment..."
-                      rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                    />
-                    <div className="flex justify-end mt-2">
-                      <button
-                        type="submit"
-                        disabled={!newComment.trim() || commentSubmitting}
-                        className="flex items-center gap-2 px-4 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                      >
-                        {commentSubmitting ? (
-                          <>
-                            <Loader2 size={16} className="animate-spin" />
-                            Posting...
-                          </>
-                        ) : (
-                          <>
-                            <Send size={16} />
-                            Post Comment
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </form>
-
-              {/* Comments List */}
-              {commentsLoading ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="w-6 h-6 animate-spin text-cyan-500" />
-                  <span className="ml-2 text-gray-600 dark:text-gray-400">Loading comments...</span>
-                </div>
-              ) : comments.length > 0 ? (
-                <div className="space-y-6">
-                  {comments.map((comment) => (
-                    <div key={comment.id} className="flex gap-4">
-                      <div className="flex-shrink-0">
-                        {comment.expand?.user?.avatar ? (
-                          <img
-                            src={getImageUrl(comment.expand.user, comment.expand.user.avatar) || "/placeholder.svg"}
-                            alt={comment.expand.user.name}
-                            className="w-10 h-10 rounded-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-10 h-10 bg-gray-400 rounded-full flex items-center justify-center">
-                            <span className="text-sm font-bold text-white">
-                              {(comment.expand?.user?.name || comment.expand?.user?.email || "U")
-                                .charAt(0)
-                                .toUpperCase()}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Link
-                            href={`/user/${comment.expand?.user?.id}`}
-                            className="font-medium text-gray-900 dark:text-white hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors"
-                          >
-                            {comment.expand?.user?.name || comment.expand?.user?.email}
-                          </Link>
-                          <span className="text-sm text-gray-500 dark:text-gray-400">
-                            {formatDate(comment.created)}
-                          </span>
-                        </div>
-                        <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{comment.content}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <MessageCircle className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                  <p className="text-gray-600 dark:text-gray-400">
-                    No comments yet. Be the first to share your thoughts!
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
+          <CommentSection
+            publicationId={id}
+            currentUser={user}
+            comments={comments}
+            commentsLoading={commentsLoading}
+            onSubmitComment={handleCommentSubmit}
+            onSubmitReply={handleCommentReplySubmit}
+            commentSubmitting={commentSubmitting}
+          />
         </main>
       </div>
     </ProtectedRoute>
