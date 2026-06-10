@@ -14,6 +14,7 @@ import {
   incrementViewCount,
   getPublicationFiles,
   incrementDownloadCount,
+  getImageUrl,
 } from "@/lib/pocketbase"
 import { Calendar, User, Eye, Download, MessageCircle, ExternalLink, Loader2, FileText } from "lucide-react"
 import { ImageGallery } from "@/components/image-gallery"

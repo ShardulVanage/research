@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { Camera, Edit3, Save, X, MapPin, Mail, Globe, Briefcase, Crown, Star, Zap, Shield } from "lucide-react"
+import { Camera, Edit3, Save, X, MapPin, Mail, Globe, Briefcase, Crown, Star, Zap, Shield, Phone } from "lucide-react"
 import { getImageUrl, updateUserProfile, checkUserMembership } from "@/lib/pocketbase"
 import { ExpandableText } from "./expandable-text"
 
@@ -62,6 +62,7 @@ export function ProfileHeader({ user, onUpdate }) {
     is_scientific: user?.is_scientific || false,
     avatar: null,
     profile_banner: null,
+    phone_no: user?.phone_no || "",
   })
 
   // Fetch membership on mount / when user changes
@@ -236,6 +237,7 @@ export function ProfileHeader({ user, onUpdate }) {
         {/* ── Main Info ── */}
         {editMode ? (
           <div className="space-y-4 mb-6">
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name</label>
               <input
@@ -245,6 +247,23 @@ export function ProfileHeader({ user, onUpdate }) {
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Phone Number
+              </label>
+              <input
+                type="tel"
+                name="phone_no"
+                value={profileData.phone_no}
+                onChange={handleChange}
+                placeholder="+91 98765 43210"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              />
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Include your country code (e.g. +1 for US, +91 for India, +44 for UK)
+              </p>
+            </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Headline</label>
@@ -382,6 +401,12 @@ export function ProfileHeader({ user, onUpdate }) {
                 <Mail size={14} />
                 {user?.email}
               </span>
+              {user?.phone_no && (
+                <span className="flex items-center gap-2">
+                  <Phone size={14} />
+                  {user.phone_no}
+                </span>
+              )}
               {user?.website && (
                 <a
                   href={user.website}

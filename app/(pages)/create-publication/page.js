@@ -157,7 +157,7 @@ export default function CreatePublicationPage() {
         <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Create New Publication</h1>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Create New Publication Post</h1>
               <p className="text-gray-600 dark:text-gray-400 mt-2">Share your research with the scientific community</p>
             </div>
 
