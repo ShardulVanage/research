@@ -66,7 +66,7 @@ export function ChatHistorySidebar({ userId, feature, currentChatId, onSelectCha
   }
 
   return (
-    <div className="w-64 bg-white/5 dark:bg-black/20 border-r border-white/10 dark:border-white/5 flex flex-col h-full">
+    <div className="w-full bg-white/5 dark:bg-black/20 border-r border-white/10 dark:border-white/5 flex flex-col h-full">
       {/* Header */}
       <div className="p-4 border-b border-white/10 dark:border-white/5">
         <button

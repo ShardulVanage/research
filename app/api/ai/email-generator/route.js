@@ -88,6 +88,9 @@ ${additionalNotes ? `- Additional Notes: ${additionalNotes}` : ''}
 
     const completion = await client.chat.completions.create({
       model: 'anthropic/claude-3.5-haiku',
+      max_tokens: 700,
+      temperature: 0.7,
+
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
         { role: 'user', content: userPrompt },

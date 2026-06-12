@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
 import { getDailyUsage } from "@/lib/ai-usage"
 import { Mail, BookOpen, Sparkles, ArrowRight, LogOut } from "lucide-react"
+import { Navbar } from "../navbar"
 
 const FEATURES = [
   {
@@ -33,6 +34,7 @@ const FEATURES = [
     color: "from-amber-500 to-amber-600",
     accent: "bg-amber-500",
     tags: ["Multi-format", "DOI Support", "Export Options"],
+    comingSoon: true,
   },
 ]
 
@@ -83,7 +85,7 @@ export function AIToolsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-white to-gray-50 dark:from-slate-950 dark:to-slate-900">
       {/* Navigation */}
-      <nav className="sticky top-0 z-50 bg-white/80 dark:bg-black/30 backdrop-blur-md border-b border-white/20 dark:border-white/10">
+      {/* <nav className="sticky top-0 z-50 bg-white/80 dark:bg-black/30 backdrop-blur-md border-b border-white/20 dark:border-white/10">
         <div className="max-w-7xl mx-auto px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-400 to-cyan-600 flex items-center justify-center">
@@ -106,15 +108,15 @@ export function AIToolsPage() {
             </button>
           </div>
         </div>
-      </nav>
-
+      </nav> */}
+<Navbar/>
       {/* Hero Section */}
       <div className="max-w-7xl mx-auto px-8 py-16 text-center">
-        <div className="mb-8 inline-block">
+        {/* <div className="mb-8 inline-block">
           <span className="px-4 py-2 bg-cyan-500/10 border border-cyan-500/30 text-cyan-600 dark:text-cyan-400 rounded-full text-sm font-medium">
             ✨ Powered by Google Gemini 2.0
           </span>
-        </div>
+        </div> */}
 
         <h1 className="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
           AI-Powered Research Tools
@@ -161,22 +163,25 @@ export function AIToolsPage() {
 
             return (
               <div
-                key={feature.id}
-                onClick={() => router.push(`/ai/${feature.id}`)}
-                className="group relative cursor-pointer"
-              >
-                {/* Background gradient */}
-                <div
-                  className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-10 rounded-2xl transition-opacity duration-300`}
-                />
+  key={feature.id}
+  onClick={() => !feature.comingSoon && router.push(`/ai/${feature.id}`)}
+  className={`group relative ${
+    feature.comingSoon ? "cursor-not-allowed" : "cursor-pointer"
+  }`}
+>
 
                 {/* Card */}
-                <div className="relative bg-white/80 dark:bg-black/30 backdrop-blur-sm border border-white/20 dark:border-white/10 rounded-2xl p-8 h-full flex flex-col hover:border-white/40 dark:hover:border-white/20 transition-all duration-300 hover:shadow-xl">
+                <div className="relative shadow-sm bg-white/80 dark:bg-black/30 backdrop-blur-sm border border-white/20 dark:border-white/10 rounded-2xl p-8 h-full flex flex-col hover:border-white/40 dark:hover:border-white/20 transition-all duration-300 hover:shadow-xl">
                   {/* Icon */}
                   <div className="mb-6">
                     <div className={`w-16 h-16 rounded-xl bg-gradient-to-br ${feature.color} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
                       <Icon size={32} className="text-white" />
                     </div>
+                     {feature.comingSoon && (
+    <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
+      Coming Soon
+    </span>
+  )}
                   </div>
 
                   {/* Content */}
@@ -201,20 +206,24 @@ export function AIToolsPage() {
                   </div>
 
                   {/* CTA */}
-                  <button
-                    className={`w-full py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 ${
-                      remaining_msgs <= 0
-                        ? "bg-gray-400 text-white opacity-50 cursor-not-allowed"
-                        : `bg-gradient-to-r ${feature.color} text-white hover:shadow-lg group-hover:scale-105`
-                    }`}
-                    disabled={remaining_msgs <= 0}
-                  >
-                    <span>Try Now</span>
-                    <ArrowRight
-                      size={18}
-                      className="group-hover:translate-x-1 transition-transform duration-300"
-                    />
-                  </button>
+                <button
+  className={`w-full py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 ${
+    feature.comingSoon
+      ? "bg-gray-400 text-white cursor-not-allowed"
+      : remaining_msgs <= 0
+      ? "bg-gray-400 text-white opacity-50 cursor-not-allowed"
+      : `bg-gradient-to-r ${feature.color} text-white hover:shadow-lg group-hover:scale-105`
+  }`}
+  disabled={remaining_msgs <= 0 || feature.comingSoon}
+>
+  <span>{feature.comingSoon ? "Coming Soon" : "Try Now"}</span>
+  {!feature.comingSoon && (
+    <ArrowRight
+      size={18}
+      className="group-hover:translate-x-1 transition-transform duration-300"
+    />
+  )}
+</button>
 
                   {remaining_msgs <= 0 && (
                     <p className="text-xs text-center text-red-500 dark:text-red-400 mt-2">
@@ -294,14 +303,14 @@ export function AIToolsPage() {
       </div>
 
       {/* Footer */}
-      <div className="max-w-7xl mx-auto px-8 py-12 text-center">
+      {/* <div className="max-w-7xl mx-auto px-8 py-12 text-center">
         <p className="text-gray-600 dark:text-gray-400 mb-4">
           Built with Next.js, PocketBase, and Google Generative AI
         </p>
         <p className="text-sm text-gray-500 dark:text-gray-500">
           © 2026 ResearchAI. All rights reserved. | Limited to 5 messages per day per user.
         </p>
-      </div>
+      </div> */}
     </div>
   )
 }

@@ -6,9 +6,10 @@ import { Navbar } from "@/components/navbar"
 import { PublicationCard } from "@/components/publication-card"
 import { MeshGradientComponent } from "@/components/mesh-gradient"
 import { getPublications } from "@/lib/pocketbase"
-import { Loader2, BookOpen, TrendingUp, Users } from "lucide-react"
+import { Loader2, BookOpen, TrendingUp, Users, ArrowRight, BrainCircuit, Eclipse } from "lucide-react"
 import { BackgroundPaths } from "@/components/ui/background-paths"
 import { HeroSection } from "@/components/Hero"
+import Announcement, { Banner } from "@/components/ui/banner"
 
 export default function HomePage() {
   const [publications, setPublications] = useState([])
@@ -47,6 +48,7 @@ export default function HomePage() {
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+          <Announcement/>
         <MeshGradientComponent colors={["#06b6d4", "#0891b2", "#0e7490", "#155e75"]} speed={1} />
 
         <Navbar />
