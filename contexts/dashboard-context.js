@@ -2,7 +2,6 @@
 
 import { createContext, useContext, useState, useEffect } from "react"
 import pb from "@/lib/pocketbase"
-import { getConferences } from "@/lib/zep-pocketbase"
 
 const DashboardContext = createContext({})
 
@@ -107,21 +106,22 @@ export const DashboardProvider = ({ children }) => {
         return
       }
 
-      // Fetch conferences
-      const confResult = await getConferences().catch((err) => {
-        console.error("Error fetching conferences:", err)
-        return { success: false, data: [] }
-      })
-      if (confResult.success && confResult.data) {
-        data.conferences = confResult.data
-      }
+      // Fetch conferences from the main (admin.zepresearch.com) PocketBase, soonest first
+      data.conferences = await pb
+        .collection("Conference")
+        .getFullList({ sort: "date" })
+        .catch((err) => {
+          console.error("Error fetching conferences:", err)
+          return []
+        })
 
-      // Fetch user's registrations
+      // Fetch user's registrations, with the linked Conference record expanded
       const regsResult = await pb
         .collection("conf_registration")
         .getList(1, 50, {
-          filter: `user = "${userId}"`,
+          filter: pb.filter("user = {:userId}", { userId }),
           sort: "-created",
+          expand: "conference",
         })
         .catch((err) => {
           console.error("Error fetching registrations:", err)

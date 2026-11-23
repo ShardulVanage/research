@@ -1,409 +1,387 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useAuth } from "@/contexts/auth-context"
 import { useDashboardData } from "@/contexts/dashboard-context"
-import { getImageUrl as getZepImageUrl } from "@/lib/zep-pocketbase"
+import { getImageUrl } from "@/lib/pocketbase"
+import {
+  conferenceImage as confImage,
+  conferenceDate,
+  conferenceVenue,
+  conferenceRegisterUrl,
+  formatConferenceDate as formatDate,
+  isFutureConference,
+  registrationConference,
+  registrationDate,
+} from "@/lib/conference-utils"
 import RequestCertificateButton from "@/components/dashboard/RequestCertificateButton"
 import RefreshDashboardButton from "@/components/dashboard/RefreshDashboardButton"
 import {
-  Crown,
   CalendarDays,
   BookOpen,
   MapPin,
   Download,
   FileText,
-  CreditCard,
   Award,
-  BookMarked,
-  ShieldCheck,
   ArrowRight,
   ClipboardList,
-  ExternalLink,
   Send,
+  Star,
+  Zap,
+  Headphones,
+  FolderOpen,
+  Eye,
+  BookMarked,
 } from "lucide-react"
+
+// Unsplash imagery
+const HERO_IMG =
+  "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1800&q=80"
+const CITY_IMGS = [
+  "https://images.unsplash.com/photo-1525625293386-3f8f99389edd?auto=format&fit=crop&w=600&q=70", // Singapore
+  "https://images.unsplash.com/photo-1596422846543-75c6fc197f07?auto=format&fit=crop&w=600&q=70", // Kuala Lumpur
+  "https://images.unsplash.com/photo-1508009603885-50cf7c579365?auto=format&fit=crop&w=600&q=70", // Bangkok
+  "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=600&q=70", // Tokyo
+]
+const HIGHLIGHT_IMGS = [
+  "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?auto=format&fit=crop&w=900&q=70",
+  "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=900&q=70",
+  "https://images.unsplash.com/photo-1591115765373-5207764f72e7?auto=format&fit=crop&w=900&q=70",
+  "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=900&q=70",
+]
 
 export default function DashboardPage() {
   const { user } = useAuth()
-  const { conferences, registrations, publications, membership, loading, initializeDashboardData } =
+  const { conferences, registrations, publications, loading, initializeDashboardData } =
     useDashboardData()
+  const [slide, setSlide] = useState(0)
 
   useEffect(() => {
     if (!user) return
-    // Initialize dashboard data (will use cache if available)
     initializeDashboardData(user.id)
   }, [user, initializeDashboardData])
 
   const userName = user?.name || user?.email?.split("@")[0] || "User"
+  const initials = userName
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2)
+  const avatarUrl = user?.avatar ? getImageUrl(user, user.avatar) : null
 
-  // Determine membership label
-  const membershipLabel = membership?.plan
-    ? membership.plan.charAt(0).toUpperCase() + membership.plan.slice(1) + " Member"
-    : "Free Member"
+  const now = new Date()
+  // Linked Conference record: expanded relation, or matched by id from the conference list
+  const conferencesById = new Map(conferences.map((c) => [c.id, c]))
+  const regConference = (reg) => registrationConference(reg, conferencesById)
+  const regDate = (reg) => registrationDate(reg, regConference(reg))
+  const upcomingCount = registrations.filter((r) => {
+    const d = regDate(r)
+    return d && d > now
+  }).length
+
+  const registeredConfIds = new Set(registrations.map((r) => r.conference).filter(Boolean))
+  const futureConferences = conferences.filter((c) => isFutureConference(c, now))
+  const featured =
+    futureConferences.find((c) => !registeredConfIds.has(c.id)) || futureConferences[0]
+  const featuredUrl = conferenceRegisterUrl(featured)
+  const highlights = futureConferences.slice(0, 4)
+  const activeSlide = highlights.length ? slide % highlights.length : 0
+  const current = highlights[activeSlide]
 
   return (
-    <div>
-      {/* Dashboard Header with Refresh Button */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
-        <div>
-          <p style={{ fontSize: "14px", color: "#64748b", margin: 0 }}>
-            Here&apos;s what&apos;s happening with your conference journey
+    <div className="zd">
+      {/* ===== Hero ===== */}
+      <section className="zd-hero fade-in-up" style={{ backgroundImage: `url(${HERO_IMG})` }}>
+        <div className="zd-hero-overlay" />
+        <div className="zd-hero-content">
+          <h1>
+            Welcome to ZepResearch
+            <br />
+            Conference Portal!
+          </h1>
+          <p>
+            Hi {userName}, your one-stop access to all your conference information,
+            resources and more.
           </p>
         </div>
-        <RefreshDashboardButton />
-      </div>
-
-      {/* ===== Stat Cards Row (3 Cards) ===== */}
-      <div className="stat-cards-row fade-in-up" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}>
-        {/* Membership */}
-        <div className="stat-card">
-          <div className="stat-card-icon cyan">
-            <Crown size={22} />
-          </div>
-          <div className="stat-card-info">
-            <h3>Membership</h3>
-            <p className="stat-value" style={{ fontSize: "16px" }}>{membershipLabel}</p>
-            <Link href="/membership" className="stat-link">
-              View Membership Card <ArrowRight size={13} />
-            </Link>
-          </div>
+        <div className="zd-hero-tag">
+          Learn • Share • Grow
+          <span />
         </div>
+      </section>
 
-        {/* Upcoming Conferences */}
-        <div className="stat-card">
-          <div className="stat-card-icon green">
-            <CalendarDays size={22} />
-          </div>
-          <div className="stat-card-info">
-            <h3>Upcoming Conferences</h3>
-            <p className="stat-value">{conferences.length}</p>
-            <Link href="/dashboard/conferences" className="stat-link">
-              View All <ArrowRight size={13} />
-            </Link>
-          </div>
-        </div>
+      {/* ===== Main grid ===== */}
+      <div className="zd-grid fade-in-up fade-in-up-delay-1">
+        {/* My Conferences */}
+        <section className="zd-card zd-conferences">
+          <header className="zd-card-head">
+            <h2>
+              <span className="zd-head-icon blue"><CalendarDays size={18} /></span>
+              My Conferences
+            </h2>
+            <div className="zd-head-actions">
+              <RefreshDashboardButton />
+              <Link href="/dashboard/conferences" className="zd-link">
+                View All <ArrowRight size={15} />
+              </Link>
+            </div>
+          </header>
 
-        {/* My Publications */}
-        <div className="stat-card">
-          <div className="stat-card-icon cyan">
-            <BookOpen size={22} />
-          </div>
-          <div className="stat-card-info">
-            <h3>My Publications</h3>
-            <p className="stat-value">{publications.length}</p>
-            <Link href="/dashboard/publications" className="stat-link">
-              View All <ArrowRight size={13} />
-            </Link>
-          </div>
-        </div>
-      </div>
+          {loading ? (
+            <div className="zd-conf-list">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="skeleton" style={{ height: 128, borderRadius: 14 }} />
+              ))}
+            </div>
+          ) : registrations.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-icon"><ClipboardList size={28} /></div>
+              <h3>No registrations yet</h3>
+              <p>Register for a conference to see it here and access your resources.</p>
+              <Link href="/dashboard/future-conferences" className="zd-btn" style={{ marginTop: 12 }}>
+                Browse Future Conferences
+              </Link>
+            </div>
+          ) : (
+            <div className="zd-conf-list">
+              {registrations.slice(0, 3).map((reg, index) => {
+                const conf = regConference(reg)
+                const confDate = regDate(reg)
+                const isUpcoming = confDate && confDate > now
+                const place = conf
+                  ? conferenceVenue(conf)
+                  : reg.city
+                    ? `${reg.city}${reg.country ? `, ${reg.country}` : ""}`
+                    : "Online"
+                const confTitle = conf
+                  ? `${conf.short_form || conf.title}${confDate ? ` ${confDate.getFullYear()}` : ""}`
+                  : reg.ticket_name || "Conference Registration"
+                const confImg = confImage(conf) || CITY_IMGS[index % CITY_IMGS.length]
+                const tiles = [
+                  { label: "Certificate", icon: Download, href: "/dashboard/certificates", tone: "blue" },
+                  {
+                    label: "Proceedings",
+                    icon: FileText,
+                    href: "https://www.zepresearch.com/past-conferences-proceedings",
+                    tone: "purple",
+                    external: true,
+                  },
+                  { label: "Submissions", icon: Send, href: "/dashboard/conference-submissions", tone: "green" },
+                  { label: "Publications", icon: BookOpen, href: "/dashboard/publications", tone: "orange" },
+                  { label: "Documents", icon: FolderOpen, href: "/dashboard/documents", tone: "indigo" },
+                  { label: "Details", icon: Eye, href: `/dashboard/registrations/${reg.id}`, tone: "teal" },
+                ]
 
-      {/* ===== Main Grid: Upcoming Conferences + My Documents ===== */}
-      <div className="dashboard-grid fade-in-up fade-in-up-delay-1">
-        {/* Upcoming Conferences (from Conference collection) */}
-        <div className="section-card">
-          <div className="section-card-header">
-            <h2>Upcoming Conferences</h2>
-            <Link href="/dashboard/conferences" className="view-all-btn">View All</Link>
-          </div>
-          <div className="section-card-body">
+                return (
+                  <article key={reg.id} className="zd-conf">
+                    <div
+                      className="zd-conf-img"
+                      style={{ backgroundImage: `url(${confImg})` }}
+                    />
+                    <div className="zd-conf-body">
+                      <div className="zd-conf-top">
+                        <div>
+                          <div className="zd-conf-title">
+                            <h3 title={conf?.title}>{confTitle}</h3>
+                            <span className={`zd-pill ${isUpcoming ? "registered" : "attended"}`}>
+                              {isUpcoming ? "Registered" : "Attended"}
+                            </span>
+                          </div>
+                          <p className="zd-conf-meta">
+                            <MapPin size={13} /> {place} · {formatDate(confDate)}
+                          </p>
+                        </div>
+                        {!isUpcoming && (
+                          <RequestCertificateButton registrationId={reg.id} conferenceEnded />
+                        )}
+                      </div>
+                      <div className="zd-tiles">
+                        {tiles.map(({ label, icon: Icon, href, tone, external }) =>
+                          external ? (
+                            <a
+                              key={label}
+                              href={href}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="zd-tile"
+                            >
+                              <Icon size={18} className={`zd-tone-${tone}`} />
+                              <span>{label}</span>
+                            </a>
+                          ) : (
+                            <Link key={label} href={href} className="zd-tile">
+                              <Icon size={18} className={`zd-tone-${tone}`} />
+                              <span>{label}</span>
+                            </Link>
+                          )
+                        )}
+                      </div>
+                    </div>
+                  </article>
+                )
+              })}
+            </div>
+          )}
+        </section>
+
+        {/* Right column */}
+        <div className="zd-side">
+          {/* Profile */}
+          <section className="zd-card zd-profile">
+            <div className="zd-profile-top">
+              <div className="zd-avatar">
+                {avatarUrl ? <img src={avatarUrl} alt={userName} /> : initials}
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <h3>{userName}</h3>
+                <p>{user?.email}</p>
+                <Link href="/profile" className="zd-link">
+                  View Profile <ArrowRight size={14} />
+                </Link>
+              </div>
+            </div>
+            <ul className="zd-stats">
+              <li>
+                <CalendarDays size={18} className="zd-tone-blue" />
+                Total Conferences <strong>{registrations.length}</strong>
+              </li>
+              <li>
+                <Star size={18} className="zd-tone-blue" fill="currentColor" />
+                Upcoming <strong>{upcomingCount}</strong>
+              </li>
+              <li>
+                <BookMarked size={18} className="zd-tone-blue" />
+                Publications <strong>{publications.length}</strong>
+              </li>
+            </ul>
+          </section>
+
+          {/* Future Conferences */}
+          <section className="zd-card zd-future">
+            <header className="zd-card-head small">
+              <h2>
+                <Star size={18} className="zd-tone-purple" fill="currentColor" />
+                Future Conferences
+              </h2>
+              <Link href="/dashboard/future-conferences" className="zd-link">
+                View All <ArrowRight size={14} />
+              </Link>
+            </header>
             {loading ? (
-              <div>
-                <div className="skeleton" style={{ height: 88, marginBottom: 12 }} />
-                <div className="skeleton" style={{ height: 88 }} />
-              </div>
-            ) : conferences.length === 0 ? (
-              <div className="empty-state">
-                <div className="empty-icon">
-                  <CalendarDays size={28} />
+              <div className="skeleton" style={{ height: 120, borderRadius: 12 }} />
+            ) : featured ? (
+              <>
+                <div className="zd-future-row">
+                  <div
+                    className="zd-future-img"
+                    style={{ backgroundImage: `url(${confImage(featured) || CITY_IMGS[3]})` }}
+                  />
+                  <div style={{ minWidth: 0 }}>
+                    <h4 title={featured.title}>
+                      {featured.short_form || featured.title || "Upcoming Conference"}
+                    </h4>
+                    <p><CalendarDays size={12} /> {formatDate(conferenceDate(featured))}</p>
+                    <p><MapPin size={12} /> {conferenceVenue(featured)}</p>
+                  </div>
                 </div>
-                <h3>No upcoming conferences</h3>
-                <p>Check back later for new conference announcements</p>
-              </div>
+                {registeredConfIds.has(featured.id) ? (
+                  <span className="zd-btn purple" aria-disabled="true" style={{ opacity: 0.7 }}>
+                    Already Registered
+                  </span>
+                ) : featuredUrl ? (
+                  <a href={featuredUrl} target="_blank" rel="noopener noreferrer" className="zd-btn purple">
+                    Register Now
+                  </a>
+                ) : (
+                  <Link href="/dashboard/future-conferences" className="zd-btn purple">View Details</Link>
+                )}
+              </>
             ) : (
-  <div className="section-card-body">
-  {loading ? (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      <div className="skeleton" style={{ height: 220 }} />
-      <div className="skeleton" style={{ height: 220 }} />
-      <div className="skeleton" style={{ height: 220 }} />
-    </div>
-  ) : conferences.length === 0 ? (
-    <div className="empty-state">
-      <div className="empty-icon">
-        <CalendarDays size={28} />
+              <p className="zd-muted">New conferences will be announced soon.</p>
+            )}
+          </section>
+        </div>
       </div>
-      <h3>No upcoming conferences</h3>
-      <p>Check back later for new conference announcements</p>
-    </div>
-  ) : (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2  .l/.7,6m5jn4htkyluio0xl:grid-cols-3 gap-4">
-      {conferences.slice(0, 4).map((conf, index) => {
-        const confDate = conf.field ? new Date(conf.field) : null
-        const dateStr = conf.date || ""
-        const month = confDate
-          ? confDate.toLocaleString("en", { month: "short" }).toUpperCase()
-          : ""
-        const day = confDate ? confDate.getDate() : ""
-        const year = confDate ? confDate.getFullYear() : ""
-        const imgUrl = conf.img
-          ? (conf.img.startsWith("http") ? conf.img : getZepImageUrl(conf, conf.img))
-          : null
 
-        return (
-          <div
-            key={conf.id}
-            className="flex flex-col gap-3 p-3 rounded-xl border border-white/10 bg-white/[0.03] hover:border-cyan-500/40 hover:bg-white/[0.05] transition-all"
-          >
-            {/* Thumbnail — full width banner */}
+      {/* ===== Bottom row ===== */}
+      <div className="zd-bottom fade-in-up fade-in-up-delay-2">
+        {/* Quick Access */}
+        <section className="zd-card">
+          <header className="zd-card-head small">
+            <h2><Zap size={18} className="zd-tone-orange" fill="currentColor" /> Quick Access</h2>
+          </header>
+          <div className="zd-quick">
+            <Link href="/dashboard/publications" className="zd-quick-item q-purple">
+              <BookOpen size={22} /> Publications
+            </Link>
+            <Link href="/dashboard/conference-submissions" className="zd-quick-item q-green">
+              <Send size={22} /> Submit Paper
+            </Link>
+            <Link href="/dashboard/certificates" className="zd-quick-item q-orange">
+              <Award size={22} /> Certificates
+            </Link>
+            <Link href="/dashboard/support" className="zd-quick-item q-blue">
+              <Headphones size={22} /> Support
+            </Link>
+          </div>
+        </section>
+
+        {/* Conference Highlights */}
+        <section className="zd-card">
+          <header className="zd-card-head small">
+            <h2><Star size={18} className="zd-tone-orange" fill="currentColor" /> Conference Highlights</h2>
+            <Link href="/dashboard/future-conferences" className="zd-link">
+              View All <ArrowRight size={14} />
+            </Link>
+          </header>
+          <div className="zd-highlight">
             <div
-              className={`w-full h-32 rounded-lg bg-cover bg-center flex items-center justify-center text-center text-xs font-medium leading-tight text-white p-3 ${
-                index % 2 === 1
-                  ? "bg-gradient-to-br from-cyan-500 to-cyan-600"
-                  : "bg-gradient-to-br from-cyan-500 to-cyan-600"
-              }`}
-              style={
-                imgUrl
-                  ? {
-                      backgroundImage: `url(${imgUrl})`,
-                      backgroundSize: "cover",
-                      backgroundPosition: "center",
-                      textShadow: "0 1px 4px rgba(0,0,0,0.6)",
-                    }
-                  : undefined
-              }
-            >
-              {!imgUrl && (conf.title?.split(" ").slice(0, 3).join(" ") || "Conference")}
-            </div>
-
-            {/* Date */}
-            <div className="text-sm sm:text-xs font-bold dark:text-white leading-snug break-words">
-              {dateStr || (day && month ? `${month} ${day}, ${year}` : "TBA")}
-            </div>
-
-            {/* Title */}
-            <h4 className="text-sm font-semibold dark:text-white leading-snug break-words">
-              {conf.title || "Conference"}
-            </h4>
-
-            {/* Location */}
-            <div className="flex items-center gap-1 text-xs dark:text-gray-400 min-w-0">
-              <MapPin size={12} className="shrink-0" />
-              <span className="truncate">{conf.location || "Online"}</span>
-            </div>
-
-            {/* Footer: status + website */}
-            <div className="flex items-center justify-between gap-2 pt-2 mt-auto border-t border-white/10">
-              <span className="status-badge upcoming text-xs px-2 py-1 rounded-full whitespace-nowrap">
-                Upcoming
-              </span>
-              {conf.websiteUrl && (
-                <a
-                  href={conf.websiteUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[11px] text-cyan-500 flex items-center gap-1 no-underline shrink-0"
-                >
-                  Website <ExternalLink size={10} />
+              className="zd-highlight-img"
+              style={{
+                backgroundImage: `url(${(current && confImage(current)) || HIGHLIGHT_IMGS[activeSlide % HIGHLIGHT_IMGS.length]})`,
+              }}
+            />
+            <div>
+              <h4>{current?.title || "Our International Conferences"}</h4>
+              <p>
+                {current?.description?.trim() ||
+                  "Relive the best moments from our international conferences and see what's coming next."}
+              </p>
+              {current?.websiteUrl ? (
+                <a href={current.websiteUrl} target="_blank" rel="noopener noreferrer" className="zd-link">
+                  Explore Conference <ArrowRight size={14} />
                 </a>
+              ) : (
+                <Link href="/dashboard/conferences" className="zd-link">
+                  Explore Conferences <ArrowRight size={14} />
+                </Link>
               )}
             </div>
           </div>
-        )
-      })}
-    </div>
-  )}
-</div>
-            )}
-          </div>
-        </div>
-
-        {/* My Documents */}
-        <div className="section-card">
-          <div className="section-card-header">
-            <h2>My Documents</h2>
-            <Link href="/dashboard/documents" className="view-all-btn">View All</Link>
-          </div>
-          <div className="section-card-body">
-            <div className="document-item">
-              <div className="document-icon membership">
-                <CreditCard size={18} />
-              </div>
-              <div className="document-info">
-                <h4>Membership Card</h4>
-                <p>View / Download</p>
-              </div>
-              <button className="document-download" aria-label="Download">
-                <Download size={16} />
-              </button>
+          {highlights.length > 1 && (
+            <div className="zd-dots">
+              {highlights.map((c, i) => (
+                <button
+                  key={c.id}
+                  className={i === activeSlide ? "active" : ""}
+                  onClick={() => setSlide(i)}
+                  aria-label={`Show highlight ${i + 1}`}
+                />
+              ))}
             </div>
+          )}
+        </section>
 
-            <div className="document-item">
-              <div className="document-icon id-card">
-                <FileText size={18} />
-              </div>
-              <div className="document-info">
-                <h4>Conference ID Card</h4>
-                <p>View / Download</p>
-              </div>
-              <button className="document-download" aria-label="Download">
-                <Download size={16} />
-              </button>
-            </div>
-
-            <div className="document-item">
-              <div className="document-icon proceedings">
-                <BookMarked size={18} />
-              </div>
-              <div className="document-info">
-                <h4>Conference Proceedings Book</h4>
-                <p>View / Download</p>
-              </div>
-              <button className="document-download" aria-label="Download">
-                <Download size={16} />
-              </button>
-            </div>
-
-            <div className="document-item">
-              <div className="document-icon certificate">
-                <Award size={18} />
-              </div>
-              <div className="document-info">
-                <h4>Participation Certificate</h4>
-                <p>Request / View issued certificates</p>
-              </div>
-              <Link href="/dashboard/certificates" className="document-download" title="My Certificates">
-                <ArrowRight size={16} />
-              </Link>
-            </div>
-
-            <div className="document-item">
-              <div className="document-icon cpd">
-                <ShieldCheck size={18} />
-              </div>
-              <div className="document-info">
-                <h4>CPD Certificate</h4>
-                <p>View / Download</p>
-              </div>
-              <button className="document-download" aria-label="Download">
-                <Download size={16} />
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ===== My Conference Registrations with Request Certificate Button ===== */}
-      <div className="dashboard-grid full-width fade-in-up fade-in-up-delay-2" style={{ marginBottom: 24 }}>
-        <div className="section-card">
-          <div className="section-card-header">
-            <h2>My Conference Registrations</h2>
-            <Link href="/dashboard/registrations" className="view-all-btn">View All</Link>
-          </div>
-          <div className="section-card-body">
-            {loading ? (
-              <div>
-                <div className="skeleton" style={{ height: 72, marginBottom: 12 }} />
-                <div className="skeleton" style={{ height: 72 }} />
-              </div>
-            ) : registrations.length === 0 ? (
-              <div className="empty-state">
-                <div className="empty-icon">
-                  <ClipboardList size={28} />
-                </div>
-                <h3>No registrations yet</h3>
-                <p>Register for a conference to see your registrations here and request certificates</p>
-              </div>
-            ) : (
-              registrations.slice(0, 4).map((reg, index) => {
-                const confDate = reg.conf_date ? new Date(reg.conf_date) : null
-                const isUpcoming = confDate && confDate > new Date()
-                const month = confDate
-                  ? confDate.toLocaleString("en", { month: "short" }).toUpperCase()
-                  : ""
-                const day = confDate ? confDate.getDate() : ""
-                const year = confDate ? confDate.getFullYear() : ""
-
-                return (
-                  <div key={reg.id} className="conference-item" style={{ flexWrap: "wrap" }}>
-                    <div className={`conference-thumb ${index % 2 === 1 ? "alt" : ""}`}>
-                      {reg.ticket_name?.split(" ").slice(0, 3).join(" ") || "Conf"}
-                    </div>
-                    <div className="conference-dates">
-                      <div className="day">{day || "—"}</div>
-                      {month && (
-                        <div className="month-year">
-                          {month}<br />{year}
-                        </div>
-                      )}
-                    </div>
-                    <div className="conference-info" style={{ flex: 1, minWidth: 200 }}>
-                      <h4>{reg.ticket_name || "Conference Registration"}</h4>
-                      <div className="conf-location">
-                        <MapPin size={12} />
-                        {reg.city ? `${reg.city}, ${reg.country || ""}` : "Online"}
-                      </div>
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                      <span className={`status-badge ${isUpcoming ? "upcoming" : "registered"}`}>
-                        {isUpcoming ? "Upcoming" : "Registered"}
-                      </span>
-                      {/* Request Certificate Button */}
-                      <RequestCertificateButton
-                        registrationId={reg.id}
-                        conferenceEnded={!isUpcoming}
-                      />
-                    </div>
-                  </div>
-                )
-              })
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* ===== Quick Actions Grid ===== */}
-      <div className="dashboard-grid full-width fade-in-up fade-in-up-delay-3" style={{ marginBottom: 24 }}>
-        <div className="section-card">
-          <div className="section-card-header">
-            <h2>Quick Actions</h2>
-          </div>
-          <div className="section-card-body">
-            <div className="quick-actions-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }}>
-              <Link href="/dashboard/conferences" className="quick-action-item">
-                <div className="quick-action-icon register">
-                  <CalendarDays size={22} />
-                </div>
-                <span>Register for Conference</span>
-              </Link>
-              <Link href="/dashboard/registrations" className="quick-action-item">
-                <div className="quick-action-icon submit">
-                  <ClipboardList size={22} />
-                </div>
-                <span>My Registrations</span>
-              </Link>
-              <Link href="/dashboard/conference-submissions" className="quick-action-item">
-                <div className="quick-action-icon submit">
-                  <Send size={22} />
-                </div>
-                <span>Conf. Paper Submissions</span>
-              </Link>
-              <Link href="/dashboard/submissions" className="quick-action-item">
-                <div className="quick-action-icon explore">
-                  <FileText size={22} />
-                </div>
-                <span>Journal Submissions</span>
-              </Link>
-              <Link href="/dashboard/certificates" className="quick-action-item">
-                <div className="quick-action-icon coins">
-                  <Award size={22} />
-                </div>
-                <span>My Certificates</span>
-              </Link>
-            </div>
-          </div>
-        </div>
+        {/* Need Help */}
+        <section className="zd-card zd-help">
+          <h2><Headphones size={20} className="zd-tone-blue" /> Need Help?</h2>
+          <p>Our support team is here to help you with any queries.</p>
+          <Link href="/dashboard/support" className="zd-btn">
+            Contact Support <ArrowRight size={15} />
+          </Link>
+        </section>
       </div>
     </div>
   )

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
 import { Navbar } from "@/components/navbar"
@@ -13,15 +13,17 @@ export default function AdminLayout({ children }) {
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
-  // Redirect if not authenticated
-  if (!loading && !user) {
-    router.push("/login")
-    return null
-  }
+  const isAdmin = !!user && isAdminUser(user)
 
-  // Redirect if not admin
-  if (!loading && user && !isAdminUser(user)) {
-    router.push("/dashboard")
+  // Redirect if not authenticated / not admin. Navigation is a side effect,
+  // so it must run in an effect, not during render.
+  useEffect(() => {
+    if (loading) return
+    if (!user) router.replace("/login")
+    else if (!isAdmin) router.replace("/dashboard")
+  }, [loading, user, isAdmin, router])
+
+  if (!loading && !isAdmin) {
     return null
   }
 

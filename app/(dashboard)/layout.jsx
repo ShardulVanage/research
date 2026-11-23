@@ -1,20 +1,27 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
 import { Navbar } from "@/components/navbar"
 import DashboardSidebar from "@/components/dashboard/DashboardSidebar"
 import "./dashboard.css"
+import "./user-dashboard.css"
 
 export default function DashboardLayout({ children }) {
   const { user, loading } = useAuth()
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
-  // Redirect to login if not authenticated
+  // Redirect to login if not authenticated. Navigation is a side effect, so it
+  // must run in an effect, not during render.
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace("/login")
+    }
+  }, [loading, user, router])
+
   if (!loading && !user) {
-    router.push("/login")
     return null
   }
 

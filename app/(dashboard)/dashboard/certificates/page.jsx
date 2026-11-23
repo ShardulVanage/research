@@ -83,10 +83,10 @@ export default function UserCertificatesPage() {
                 You can request certificates for completed conference registrations.
               </p>
               <Link
-                href="/dashboard/registrations"
+                href="/dashboard/conferences"
                 className="mt-4 inline-block rounded-[10px] bg-cyan-600 px-6 py-2.5 text-sm font-semibold text-white no-underline transition-colors hover:bg-cyan-700 dark:bg-cyan-500 dark:hover:bg-cyan-400"
               >
-                View My Registrations
+                View My Conferences
               </Link>
             </div>
           ) : (

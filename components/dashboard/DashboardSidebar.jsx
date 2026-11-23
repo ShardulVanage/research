@@ -21,15 +21,15 @@ import {
   Shield,
   Award,
   Send,
-  ClipboardList,
   ShieldUser,
+  Star,
 } from "lucide-react"
 
 const baseNavItems = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "My Profile", href: "/profile", icon: User },
   { label: "My Conferences", href: "/dashboard/conferences", icon: CalendarDays },
-  { label: "My Registrations", href: "/dashboard/registrations", icon: ClipboardList },
+  { label: "Future Conferences", href: "/dashboard/future-conferences", icon: Star },
   { label: "Conf. Submissions", href: "/dashboard/conference-submissions", icon: Send },
   { label: "Journal Submissions", href: "/dashboard/submissions", icon: FileText },
   { label: "My Publications", href: "/dashboard/publications", icon: BookOpen },
@@ -93,7 +93,9 @@ export default function DashboardSidebar({ isOpen, onClose }) {
             const Icon = item.icon
             const isActive =
               pathname === item.href ||
-              (item.href !== "/dashboard" && pathname?.startsWith(item.href))
+              (item.href !== "/dashboard" && pathname?.startsWith(item.href)) ||
+              // Registration detail pages belong under "My Conferences"
+              (item.href === "/dashboard/conferences" && pathname?.startsWith("/dashboard/registrations"))
 
             return (
               <Link
