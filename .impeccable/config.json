@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "components/cms/cms.css"
+        ],
+        "createdAt": "2026-11-23T05:33:22.285Z",
+        "reason": "assistant triage: L12 is the blockquote rule in the rich-text editor's reading styles, a standard typographic quote marker, not a card accent"
+      }
+    ]
+  }
+}

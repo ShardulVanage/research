@@ -7,6 +7,14 @@
 
 .dark .dashboard-layout {
   background-color: #0f1117;
+
+  /* One dark palette for the user dashboard, admin panel and CMS.
+     Pages use Tailwind slate classes (dark:bg-slate-900 etc.), which are navy by default.
+     Re-point the dark shades at the dashboard greys so every page matches. */
+  --color-slate-950: #0f1117; /* page */
+  --color-slate-900: #1a1d27; /* cards, sidebar */
+  --color-slate-800: #2a2d3a; /* borders, inputs */
+  --color-slate-700: #3a3e4d; /* stronger borders */
 }
 
 /* ===== Sidebar ===== */
